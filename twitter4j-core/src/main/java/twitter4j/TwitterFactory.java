@@ -84,18 +84,6 @@ public final class TwitterFactory implements java.io.Serializable {
         return getInstance(conf, auth);
     }
 
-    /**
-     * Returns a Basic Authenticated instance.
-     *
-     * @param screenName screen name
-     * @param password password
-     * @return an instance
-     */
-    public Twitter getInstance(String screenName, String password) {
-        return getInstance(AuthorizationFactory
-                .getBasicAuthorizationInstance(screenName, password));
-    }
-
     // factory methods for OAuth support
 
     /**

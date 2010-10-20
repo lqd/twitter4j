@@ -385,18 +385,6 @@ public final class TwitterStream extends TwitterOAuthSupportBaseImpl implements 
         this.handler.start();
     }
 
-    private synchronized void startUserStreamHandler(StreamHandlingThread handler) {
-        cleanup();
-        if (null == statusListener) {
-            throw new IllegalStateException("UserStreamListener is not set.");
-        }
-        if (!(statusListener instanceof UserStreamListener)) {
-            throw new IllegalStateException("UserStreamListener is not set.");
-        }
-        this.handler = handler;
-        this.handler.start();
-    }
-
     public synchronized void cleanup() {
         if (null != handler) {
             try {
@@ -430,7 +418,6 @@ public final class TwitterStream extends TwitterOAuthSupportBaseImpl implements 
 
     abstract class StreamHandlingThread extends Thread {
         private StatusStream stream = null;
-        private UserStreamListener userStreamListener;
         private final boolean handleUserStream;
         private static final String NAME = "Twitter Stream Handling Thread";
         private boolean closed = false;

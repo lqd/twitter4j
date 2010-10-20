@@ -70,7 +70,7 @@ public class Annotation implements Comparable<Annotation>, java.io.Serializable 
 	Annotation(JSONObject jsonObject) {
 		String typ = null;
 		Map<String, String> attrs = null;
-		Iterator it = jsonObject.keys();
+		Iterator<?> it = jsonObject.keys();
 		if (it.hasNext()) {
 			typ = (String)it.next();
 			// we expect only one key - the type; if there are more it's a malformed JSON object

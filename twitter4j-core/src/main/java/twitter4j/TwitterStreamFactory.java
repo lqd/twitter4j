@@ -113,19 +113,6 @@ public final class TwitterStreamFactory implements java.io.Serializable{
     }
 
     /**
-     * Returns a Basic Authenticated instance.
-     *
-     * @param screenName screen name
-     * @param password password
-     * @return an instance
-     */
-    public TwitterStream getInstance(String screenName, String password){
-        return getInstance(AuthorizationFactory
-                .getBasicAuthorizationInstance(screenName, password));
-    }
-
-
-    /**
      * Returns a OAuth Authenticated instance.
      *
      * @param consumerKey consumer key

@@ -96,7 +96,7 @@ public abstract class Logger {
      * @param clazz class
      * @return logger instance
      */
-    public static Logger getLogger(Class clazz){
+    public static Logger getLogger(Class<?> clazz){
         return LOGGER_FACTORY.getLogger(clazz);
     }
 

@@ -34,7 +34,7 @@ import twitter4j.internal.util.ParseUtil;
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.1.3
  */
-class PagableResponseListImpl<T> extends ResponseListImpl implements PagableResponseList {
+class PagableResponseListImpl<T extends TwitterResponse> extends ResponseListImpl<T> implements PagableResponseList<T> {
     private final long previousCursor;
     private final long nextCursor;
     private static final long serialVersionUID = 1531950333538983361L;

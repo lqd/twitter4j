@@ -73,7 +73,7 @@ import twitter4j.internal.org.json.JSONObject;
             JSONObject trendsJson = json.getJSONObject("trends");
             Location location = extractLocation(json, res);
             trends = new ArrayList<Trends>(trendsJson.length());
-            Iterator ite = trendsJson.keys();
+            Iterator<?> ite = trendsJson.keys();
             while (ite.hasNext()) {
                 String key = (String) ite.next();
                 JSONArray array = trendsJson.getJSONArray(key);
