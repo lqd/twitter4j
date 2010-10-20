@@ -13,3 +13,6 @@ atlassian-ide-plugin.xml
 *.iml
 *.ipr
 *.iws
+bin/*
+twitter4j-examples/src/main/java/twitter4j/examples/projectcuicui.properties
+twitter4j-examples/src/main/java/twitter4j/examples/twitter4j.properties
