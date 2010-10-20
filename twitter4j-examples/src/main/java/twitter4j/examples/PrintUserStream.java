@@ -35,7 +35,7 @@ import javax.swing.Timer;
 
 import twitter4j.*;
 import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationContext;
+import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.conf.PropertyConfiguration;
 import twitter4j.http.AccessToken;
 import twitter4j.http.OAuthAuthorization;
@@ -44,7 +44,7 @@ import twitter4j.http.OAuthAuthorization;
  * <p>
  * This is a code example of Twitter4J Streaming API - user stream.<br>
  * Usage: java twitter4j.examples.PrintUserStream. Needs a valid
- * twitter4j.properties file with Basic Auth _and_ OAuth properties set<br>
+ * twitter4j.properties file with OAuth properties set<br>
  * </p>
  * 
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -54,8 +54,8 @@ public final class PrintUserStream implements UserStreamListener
 {
     public static void main (String [] args) throws TwitterException
     {
-        PrintUserStream printSampleStream = new PrintUserStream (args);
-        printSampleStream.startConsuming ();
+        PrintUserStream printUserStream = new PrintUserStream (args);
+        printUserStream.startConsuming ();
     }
 
     private TwitterStream twitterStream;
@@ -64,16 +64,28 @@ public final class PrintUserStream implements UserStreamListener
     private Twitter twitter;
     private int currentUserId;
 
+    // useful to rapidly filter out replies from people you follow to people you don't follow
+    private static boolean ALL_REPLIES_FROM_FOLLOWINGS = true;
+    
+    // useful to rapidly filter out replies from people you don't follow to people you follow.
+    private static boolean ALL_REPLIES_TO_FOLLOWINGS = false;
+    
+    private static boolean SHOW_TWEETS_URL_ON_TWITTER_WEBSITE = false;
+    
     public PrintUserStream (String [] args)
     {
-        Configuration conf = new PropertyConfiguration (getClass ().getResourceAsStream ("twitter4j.properties"));
+        Configuration properties = new PropertyConfiguration (getClass ().getResourceAsStream ("twitter4j.properties"));
+        
+        boolean enableAllReplies = ALL_REPLIES_FROM_FOLLOWINGS || ALL_REPLIES_TO_FOLLOWINGS;
+        Configuration conf = new ConfigurationBuilder ().setUserStreamRepliesAllEnabled (enableAllReplies)
+                                                        .build ();
+        
+        OAuthAuthorization auth = new OAuthAuthorization (conf,
+                properties.getOAuthConsumerKey (), properties.getOAuthConsumerSecret (),
+                new AccessToken (properties.getOAuthAccessToken (), properties.getOAuthAccessTokenSecret ()));
 
-        OAuthAuthorization auth = new OAuthAuthorization (ConfigurationContext.getInstance (),
-                conf.getOAuthConsumerKey (), conf.getOAuthConsumerSecret (),
-                new AccessToken (conf.getOAuthAccessToken (), conf.getOAuthAccessTokenSecret ()));
-
-        twitterStream = new TwitterStreamFactory ().getInstance (auth);
-        twitter = new TwitterFactory ().getInstance (auth);
+        twitterStream = new TwitterStreamFactory (conf).getInstance (auth);
+        twitter = new TwitterFactory (conf).getInstance (auth);
 
         try
         {
@@ -119,21 +131,58 @@ public final class PrintUserStream implements UserStreamListener
     public void onStatus (Status status)
     {
         int replyTo = status.getInReplyToUserId ();
-        if (replyTo > 0 && !friends.contains (replyTo) && currentUserId != replyTo)
-            System.out.print ("[Out of band] "); // I've temporarily labeled
-                                                 // "out of band" messages that
-                                                 // are sent to people you don't
-                                                 // follow
-
+        
         User user = status.getUser ();
-
-        System.out.println (user.getName () + " [" + user.getScreenName () + "] : " + status.getText ());
+        
+        if (replyTo > 0)
+        {
+            int from = user.getId ();
+            String replyType = null;
+            
+            if (currentUserId != replyTo)
+            {
+                // reply *to* someone you follow, or *from* someone you follow
+                if (friends.contains (from))
+                {
+                    // reply from someone you follow
+                    if (! friends.contains (replyTo))
+                    {
+                        // to someone you don't follow
+                        if (! ALL_REPLIES_FROM_FOLLOWINGS)
+                            return;
+                       replyType = "[To stranger]";
+                    }
+                }
+                else
+                {
+                    // reply from someone you don't follow to someone you follow
+                    if (! ALL_REPLIES_TO_FOLLOWINGS)
+                        return;
+                    replyType = "[From stranger]";
+                }
+            }
+            else
+            {
+                // reply to you
+                if (! friends.contains (from))
+                    replyType = "[From stranger]";
+            }
+            
+            if (replyType != null)
+                System.out.print (replyType + " ");
+        }
+        
+        System.out.print (user.getName () + " [" + user.getScreenName () + "] : " + status.getText ());
+        
+        if (SHOW_TWEETS_URL_ON_TWITTER_WEBSITE)
+            System.out.println (" - link: http://twitter.com/" + user.getScreenName () + "/status/" + status.getId ());
+        else
+            System.out.println ("");
     }
 
     public void onDirectMessage (DirectMessage dm)
     {
-        System.out.println ("DM from " + dm.getSenderScreenName () + " to " + dm.getRecipientScreenName ()
-                + ": " + dm.getText ());
+        System.out.println ("DM from " + dm.getSenderScreenName () + " to " + dm.getRecipientScreenName () + ": " + dm.getText ());
     }
 
     public void onDeletionNotice (StatusDeletionNotice notice)
