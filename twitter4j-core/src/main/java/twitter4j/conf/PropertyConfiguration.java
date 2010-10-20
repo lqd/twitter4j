@@ -107,7 +107,7 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
 
     PropertyConfiguration(String treePath) {
         super();
-        Properties props = null;
+        Properties props;
         // load from system properties
         try {
             props = (Properties)System.getProperties().clone();
