@@ -260,9 +260,8 @@ public final class TwitterStream extends TwitterOAuthSupportBaseImpl implements 
     }
 
     /**
-     * User Stream is currently in beta.<br>
-     * Read through and follow the doc! Do not release products using UserStream during the preview / beta period.
-     * @see <a href="http://apiwiki.twitter.com/ChirpUserStreams">Twitter API Wiki / ChirpUserStreams</a>
+     * User Streams provides real-time updates of all data needed to update a desktop application display. <br>
+     * @see <a href="http://dev.twitter.com/pages/user_streams"> User Streams | dev.twitter.com</a>
      */
    public void user() {
         ensureAuthorizationEnabled();
@@ -274,11 +273,10 @@ public final class TwitterStream extends TwitterOAuthSupportBaseImpl implements 
     }
 
     /**
-     * User Stream is currently in beta.<br>
-     * Read through and follow the doc! Do not release products using UserStream during the preview / beta period.
+     * User Streams provides real-time updates of all data needed to update a desktop application display. <br>
      * @return UserStream
      * @throws TwitterException when Twitter service or network is unavailable
-     * @see <a href="http://apiwiki.twitter.com/ChirpUserStreams">Twitter API Wiki / ChirpUserStreams</a>
+     * @see <a href="http://dev.twitter.com/pages/user_streams"> User Streams | dev.twitter.com</a>
      */
     public UserStream getUserStream() throws TwitterException {
         ensureAuthorizationEnabled();
