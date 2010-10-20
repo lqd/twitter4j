@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.conf;
 
-import twitter4j.Version;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import twitter4j.Version;
 
 /**
  * Configuration base class with default settings.

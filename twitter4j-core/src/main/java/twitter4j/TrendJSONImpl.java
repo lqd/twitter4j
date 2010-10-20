@@ -26,9 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import static twitter4j.internal.util.ParseUtil.getRawString;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
-import static twitter4j.internal.util.ParseUtil.*;
 
 /**
  * A data class representing Trend.

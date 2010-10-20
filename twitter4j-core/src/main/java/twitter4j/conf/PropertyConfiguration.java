@@ -26,17 +26,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.conf;
 
-import twitter4j.internal.util.StringUtil;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.AccessControlException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+
+import twitter4j.internal.util.StringUtil;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com

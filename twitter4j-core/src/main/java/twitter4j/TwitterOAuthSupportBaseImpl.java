@@ -28,14 +28,7 @@ package twitter4j;
 
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationContext;
-import twitter4j.http.AccessToken;
-import twitter4j.http.Authorization;
-import twitter4j.http.AuthorizationFactory;
-import twitter4j.http.BasicAuthorization;
-import twitter4j.http.NullAuthorization;
-import twitter4j.http.OAuthAuthorization;
-import twitter4j.http.OAuthSupport;
-import twitter4j.http.RequestToken;
+import twitter4j.http.*;
 import twitter4j.internal.http.XAuthAuthorization;
 
 /**

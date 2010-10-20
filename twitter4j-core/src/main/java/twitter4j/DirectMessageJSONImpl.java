@@ -26,13 +26,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import static twitter4j.internal.util.ParseUtil.getDate;
+import static twitter4j.internal.util.ParseUtil.getInt;
+import static twitter4j.internal.util.ParseUtil.getUnescapedString;
+
+import java.util.Date;
+
 import twitter4j.internal.http.HttpResponse;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
-
-import java.util.Date;
-import static twitter4j.internal.util.ParseUtil.*;
 /**
  * A data class representing sent/received direct message.
  * @author Yusuke Yamamoto - yusuke at mac.com

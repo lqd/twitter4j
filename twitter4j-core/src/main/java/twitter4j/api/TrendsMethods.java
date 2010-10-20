@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.api;
 
-import twitter4j.Trends;
-import twitter4j.TwitterException;
-
 import java.util.Date;
 import java.util.List;
+
+import twitter4j.Trends;
+import twitter4j.TwitterException;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com

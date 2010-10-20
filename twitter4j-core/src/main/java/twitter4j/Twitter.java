@@ -26,16 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.api.*;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationContext;
-import twitter4j.http.*;
-import twitter4j.internal.http.HttpParameter;
-import twitter4j.internal.http.HttpResponse;
-import twitter4j.internal.org.json.JSONArray;
-import twitter4j.internal.org.json.JSONException;
-
-import static twitter4j.internal.http.HttpParameter.*;
+import static twitter4j.internal.http.HttpParameter.getParameterArray;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +35,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import twitter4j.api.*;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.ConfigurationContext;
+import twitter4j.http.Authorization;
+import twitter4j.http.BasicAuthorization;
+import twitter4j.internal.http.HttpParameter;
+import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.org.json.JSONArray;
+import twitter4j.internal.org.json.JSONException;
 
 /**
  * A java representation of the <a href="http://apiwiki.twitter.com/">Twitter API</a><br>

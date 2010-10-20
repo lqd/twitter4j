@@ -26,13 +26,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import static twitter4j.internal.util.ParseUtil.getInt;
+import static twitter4j.internal.util.ParseUtil.getRawString;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import twitter4j.internal.http.HttpResponse;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
-import static twitter4j.internal.util.ParseUtil.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * A data class representing Basic list information element

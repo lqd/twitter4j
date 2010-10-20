@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.internal.http.HttpParameter;
-
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+
+import twitter4j.internal.http.HttpParameter;
 
 /**
  * Controls pagination.<br>

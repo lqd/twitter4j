@@ -26,14 +26,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import static twitter4j.internal.util.ParseUtil.getDouble;
+import static twitter4j.internal.util.ParseUtil.getInt;
+import static twitter4j.internal.util.ParseUtil.getLong;
+import static twitter4j.internal.util.ParseUtil.getRawString;
+import static twitter4j.internal.util.ParseUtil.getURLDecodedString;
+import static twitter4j.internal.util.ParseUtil.getUnescapedString;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import twitter4j.internal.http.HttpResponse;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-import static twitter4j.internal.util.ParseUtil.*;
 /**
  * A data class representing search API response
  * @author Yusuke Yamamoto - yusuke at mac.com

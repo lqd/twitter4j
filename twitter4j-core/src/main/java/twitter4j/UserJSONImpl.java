@@ -26,15 +26,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.internal.http.HttpResponse;
-import twitter4j.internal.org.json.JSONArray;
-import twitter4j.internal.org.json.JSONException;
-import twitter4j.internal.org.json.JSONObject;
+import static twitter4j.internal.util.ParseUtil.getBoolean;
+import static twitter4j.internal.util.ParseUtil.getDate;
+import static twitter4j.internal.util.ParseUtil.getInt;
+import static twitter4j.internal.util.ParseUtil.getRawString;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
-import static twitter4j.internal.util.ParseUtil.*;
+
+import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.org.json.JSONArray;
+import twitter4j.internal.org.json.JSONException;
+import twitter4j.internal.org.json.JSONObject;
 
 /**
  * A data class representing Basic user information element
