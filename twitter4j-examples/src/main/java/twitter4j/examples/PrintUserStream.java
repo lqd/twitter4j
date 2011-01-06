@@ -78,6 +78,7 @@ public final class PrintUserStream implements UserStreamListener
         
         boolean enableAllReplies = ALL_REPLIES_FROM_FOLLOWINGS || ALL_REPLIES_TO_FOLLOWINGS;
         Configuration conf = new ConfigurationBuilder ().setUserStreamRepliesAllEnabled (enableAllReplies)
+                                                        .setIncludeRTsEnabled (true)
                                                         .build ();
         
         OAuthAuthorization auth = new OAuthAuthorization (conf,
@@ -153,7 +154,7 @@ public final class PrintUserStream implements UserStreamListener
                        replyType = "[To stranger]";
                     }
                 }
-                else
+                else if (currentUserId != from) // the reply is not from you
                 {
                     // reply from someone you don't follow to someone you follow
                     if (! ALL_REPLIES_TO_FOLLOWINGS)
