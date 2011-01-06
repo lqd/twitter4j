@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -92,11 +92,11 @@ public interface UserMethods {
 
     /**
      * Access to Twitter's suggested user list. This returns the list of suggested user categories. The category can be used in the users/suggestions/category endpoint to get the users in that category.
-     * <br>This method calls http://api.twitter.com/1/users/suggestions.json
+     * <br>This method calls http://api.twitter.com/1/users/suggestions/:slug.json
      * @return list of suggested user categories.
      * @throws TwitterException when Twitter service or network is unavailable
      * @since Twitter4J 2.1.1
-     * @see <a href="http://dev.twitter.com/doc/get/users/suggestions">GET users/suggestions | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/get/users/suggestions/:slug">GET users/suggestions/:slug | dev.twitter.com</a>
      */
     ResponseList<Category> getSuggestedUserCategories() throws TwitterException;
 
@@ -111,6 +111,31 @@ public interface UserMethods {
      * @since Twitter4J 2.1.1
      */
     ResponseList<User> getUserSuggestions(String categorySlug) throws TwitterException;
+
+    /**
+     * Access the users in a given category of the Twitter suggested user list and return their most recent status if they are not a protected user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/users/suggestions/:slug/members.json
+     * @param categorySlug slug
+     * @return list of suggested users
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     * @since Twitter4J 2.1.9
+     */
+    ResponseList<User> getMemberSuggestions(String categorySlug) throws TwitterException;
+
+    /**
+     * Access the profile image in various sizes for the user with the indicated screen_name. If no size is provided the normal image is returned. This resource does not return JSON or XML, but instead returns a 302 redirect to the actual image resource.
+     * This method should only be used by application developers to lookup or check the profile image URL for a user. This method must not be used as the image source URL presented to users of your application.
+     * <br>This method calls http://api.twitter.com/1/users/profile_image/:screen_name.json
+     * @param screenName The screen name of the user for whom to return results for.
+     * @param size Specifies the size of image to fetch. Not specifying a size will give the default, normal size of 48px by 48px. Valid options include: BIGGER - 73px by 73px NORMAL - 48px by 48px MINI - 24px by 24px
+     * @return profile image
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @see <a href="http://dev.twitter.com/doc/get/users/profile_image/:screen_name">GET users/profile_image/:screen_name | dev.twitter.com</a>
+     * @since Twitter4J 2.1.7
+     */
+    ProfileImage getProfileImage(String screenName, ProfileImage.ImageSize size) throws TwitterException;
 
     /**
      * Returns a user's friends, each with current status inline. They are ordered by the order in which the user followed them, most recently followed first, 100 at a time. (Please note that the result set isn't guaranteed to be 100 every time as suspended users will be filtered out.)

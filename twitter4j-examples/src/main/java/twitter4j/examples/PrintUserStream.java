@@ -37,8 +37,6 @@ import twitter4j.*;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.conf.PropertyConfiguration;
-import twitter4j.http.AccessToken;
-import twitter4j.http.OAuthAuthorization;
 
 /**
  * <p>
@@ -77,16 +75,16 @@ public final class PrintUserStream implements UserStreamListener
         Configuration properties = new PropertyConfiguration (getClass ().getResourceAsStream ("twitter4j.properties"));
         
         boolean enableAllReplies = ALL_REPLIES_FROM_FOLLOWINGS || ALL_REPLIES_TO_FOLLOWINGS;
-        Configuration conf = new ConfigurationBuilder ().setUserStreamRepliesAllEnabled (enableAllReplies)
+        Configuration conf = new ConfigurationBuilder ().setOAuthConsumerKey (properties.getOAuthConsumerKey ())
+                                                        .setOAuthConsumerSecret (properties.getOAuthConsumerSecret ())
+                                                        .setOAuthAccessToken (properties.getOAuthAccessToken ())
+                                                        .setOAuthAccessTokenSecret (properties.getOAuthAccessTokenSecret ())
+                                                        .setUserStreamRepliesAllEnabled (enableAllReplies)
                                                         .setIncludeRTsEnabled (true)
                                                         .build ();
         
-        OAuthAuthorization auth = new OAuthAuthorization (conf,
-                properties.getOAuthConsumerKey (), properties.getOAuthConsumerSecret (),
-                new AccessToken (properties.getOAuthAccessToken (), properties.getOAuthAccessTokenSecret ()));
-
-        twitterStream = new TwitterStreamFactory (conf).getInstance (auth);
-        twitter = new TwitterFactory (conf).getInstance (auth);
+        twitterStream = new TwitterStreamFactory (conf).getInstance ();
+        twitter = new TwitterFactory (conf).getInstance ();
 
         try
         {
@@ -110,11 +108,11 @@ public final class PrintUserStream implements UserStreamListener
         t.start ();
     }
 
-    private void startConsuming () throws TwitterException
+    private void startConsuming ()
     {
         // the user() method internally creates a thread which manipulates
         // TwitterStream and calls these adequate listener methods continuously.
-        twitterStream.setUserStreamListener (this);
+        twitterStream.addListener (this);
         twitterStream.user ();
     }
 
@@ -265,31 +263,49 @@ public final class PrintUserStream implements UserStreamListener
     }
 
     @Override
-    public void onUserListCreated (User listOwner, UserList list)
+    public void onUserListCreation (User listOwner, UserList list)
     {
         System.out.println (listOwner.getName () + " [" + listOwner.getScreenName () + "] created list: "
                 + list.getName () + " [" + list.getFullName () + "]");
     }
 
     @Override
-    public void onUserListDestroyed (User listOwner, UserList list)
+    public void onUserListDeletion (User listOwner, UserList list)
     {
         System.out.println (listOwner.getName () + " [" + listOwner.getScreenName () + "] destroyed list: "
                 + list.getName () + " [" + list.getFullName () + "]");
     }
 
     @Override
-    public void onUserListSubscribed (User subscriber, User listOwner, UserList list)
+    public void onUserListSubscription (User subscriber, User listOwner, UserList list)
     {
         System.out.println (subscriber.getName () + " [" + subscriber.getScreenName () + "] subscribed to "
                 + listOwner.getName () + "'s [" + listOwner.getScreenName () + "] list: " + list.getName ()
                 + " [" + list.getFullName () + "]");
     }
-
+    
     @Override
-    public void onUserListUpdated (User listOwner, UserList list)
+    public void onUserListUpdate (User listOwner, UserList list)
     {
         System.out.println (listOwner.getName () + " [" + listOwner.getScreenName () + "] updated list: "
                 + list.getName () + " [" + list.getFullName () + "]");
+    }
+    
+    @Override
+    public void onScrubGeo (int userId, long upToStatusId)
+    {
+        System.out.println("Got scrub_geo event userId:" + userId + " upToStatusId:" + upToStatusId);
+    }
+    
+    @Override
+    public void onDeletionNotice (long directMessageId, int userId)
+    {
+        System.out.println("Got a direct message deletion notice id:" + directMessageId);
+    }
+    
+    @Override
+    public void onUserProfileUpdate (User updatedUser)
+    {
+        System.out.println("onUserProfileUpdated user:@" + updatedUser.getScreenName());
     }
 }

@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.twitter4j</groupId>
     <artifactId>twitter4j</artifactId>
-    <version>2.1.7-SNAPSHOT</version>
+    <version>2.1.11-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>twitter4j</name>
     <description>A Java library for the Twitter API</description>
@@ -24,7 +24,7 @@
             <id>yusuke</id>
             <name>Yusuke</name>
             <email>yusuke@mac.com</email>
-            <url>http://yusuke.homeip.net/blog/</url>
+            <url>http://samuraism.jp/</url>
             <roles>
                 <role>lead</role>
                 <role>architect</role>
@@ -98,6 +98,7 @@
         </profile>
     </profiles>
     <modules>
+        <module>twitter4j-media-support</module>    
         <module>twitter4j-httpclient-support</module>    
         <module>twitter4j-core</module>    
         <module>twitter4j-examples</module>

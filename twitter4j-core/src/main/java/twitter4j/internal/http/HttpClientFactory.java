@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,15 @@ package twitter4j.internal.http;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import twitter4j.internal.logging.Logger;
+
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.1.2
  */
 public final class HttpClientFactory {
     private static final Constructor<?> HTTP_CLIENT_CONSTRUCTOR;
-//    private static final Logger logger = Logger.getLogger(HttpClientFactory.class);
+    private static final Logger logger = Logger.getLogger(HttpClientFactory.class);
 
     static {
         Class<?> clazz = null;
@@ -50,7 +52,7 @@ public final class HttpClientFactory {
                 throw new AssertionError(cnfe);
             }
         }
-//        logger.info("Will use " + clazz.getName() + " as HttpClient implementation.");
+        logger.debug("Will use " + clazz.getName() + " as HttpClient implementation.");
         try {
             HTTP_CLIENT_CONSTRUCTOR = clazz.getConstructor(HttpClientConfiguration.class);
         } catch (NoSuchMethodException nsme) {

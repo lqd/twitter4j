@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,13 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import static twitter4j.internal.util.ParseUtil.getDate;
-import static twitter4j.internal.util.ParseUtil.getInt;
-import static twitter4j.internal.util.ParseUtil.getUnescapedString;
+import static twitter4j.internal.util.ParseUtil.*;
 
 import java.util.Date;
 
 import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -41,7 +40,7 @@ import twitter4j.internal.org.json.JSONObject;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 /*package*/ final class DirectMessageJSONImpl extends TwitterResponseImpl implements DirectMessage, java.io.Serializable {
-    private int id;
+    private long id;
     private String text;
     private int senderId;
     private int recipientId;
@@ -53,13 +52,16 @@ import twitter4j.internal.org.json.JSONObject;
 
     /*package*/DirectMessageJSONImpl(HttpResponse res) throws TwitterException {
         super(res);
-        init(res.asJSONObject());
+        JSONObject json = res.asJSONObject();
+        init(json);
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        DataObjectFactoryUtil.registerJSONObject(this, json);
     }
     /*package*/DirectMessageJSONImpl(JSONObject json) throws TwitterException {
         init(json);
     }
     private void init(JSONObject json) throws TwitterException{
-        id = getInt("id", json);
+        id = getLong("id", json);
         text = getUnescapedString("text", json);
         senderId = getInt("sender_id", json);
         recipientId = getInt("recipient_id", json);
@@ -77,7 +79,7 @@ import twitter4j.internal.org.json.JSONObject;
     /**
      * {@inheritDoc}
      */
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -143,12 +145,17 @@ import twitter4j.internal.org.json.JSONObject;
 
     /*package*/ static ResponseList<DirectMessage> createDirectMessageList(HttpResponse res) throws TwitterException {
         try {
+            DataObjectFactoryUtil.clearThreadLocalMap();
             JSONArray list = res.asJSONArray();
             int size = list.length();
             ResponseList<DirectMessage> directMessages = new ResponseListImpl<DirectMessage>(size, res);
             for (int i = 0; i < size; i++) {
-                directMessages.add(new DirectMessageJSONImpl(list.getJSONObject(i)));
+                JSONObject json = list.getJSONObject(i);
+                DirectMessage directMessage = new DirectMessageJSONImpl(json);
+                directMessages.add(directMessage);
+                DataObjectFactoryUtil.registerJSONObject(directMessage, json);
             }
+            DataObjectFactoryUtil.registerJSONObject(directMessages, list);
             return directMessages;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -159,7 +166,7 @@ import twitter4j.internal.org.json.JSONObject;
 
     @Override
     public int hashCode() {
-        return id;
+        return (int)id;
     }
 
     @Override

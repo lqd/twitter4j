@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,158 +26,103 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
+import twitter4j.internal.async.Dispatcher;
 import twitter4j.internal.http.HttpResponse;
-import twitter4j.internal.logging.Logger;
-import twitter4j.internal.org.json.JSONArray;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
 import twitter4j.internal.util.ParseUtil;
 
+
 /**
  * StatusStream implementation. This class is NOT intended to be extended but left non-final for the ease of mock testing.
+ *
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.1.2
  */
-class StatusStreamImpl implements StatusStream, UserStream {
-    private static final Logger logger = Logger.getLogger(StatusStreamImpl.class);
-
-    private boolean streamAlive = true;
-    private BufferedReader br;
-    private InputStream is;
-    private HttpResponse response;
-
+class StatusStreamImpl extends AbstractStreamImplementation implements StatusStream {
     /*package*/
 
-    StatusStreamImpl(InputStream stream) throws IOException {
-        this.is = stream;
-        this.br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+    StatusStreamImpl(Dispatcher dispatcher, InputStream stream) throws IOException {
+        super(dispatcher, stream);
     }
     /*package*/
 
-    StatusStreamImpl(HttpResponse response) throws IOException {
-        this(response.asStream());
-        this.response = response;
+    StatusStreamImpl(Dispatcher dispatcher, HttpResponse response) throws IOException {
+        super(dispatcher, response);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void next(UserStreamListener listener) throws TwitterException {
-        handleNextElement(listener, listener);
-    }
+    protected String line;
 
-    private static final UserStreamAdapter nullAdapter = new UserStreamAdapter();
+    protected StreamListener[] listeners;
+
     /**
-     * {@inheritDoc}
+     * Reads next status from this stream.
+     * @param listener a StatusListener implementation
+     * @throws TwitterException when the end of the stream has been reached.
+     * @throws IllegalStateException when the end of the stream had been reached.
      */
     public void next(StatusListener listener) throws TwitterException {
-        handleNextElement(listener, nullAdapter);
+        StreamListener[] list = new StreamListener[1];
+        list[0] = listener;
+        this.listeners = list;
+        handleNextElement();
     }
-    private void handleNextElement(StatusListener listener, UserStreamListener userStreamListener) throws TwitterException {
-        if (!streamAlive) {
-            throw new IllegalStateException("Stream already closed.");
+    public void next(StreamListener[] listeners) throws TwitterException{
+        this.listeners = listeners;
+        handleNextElement();
+    }
+
+    protected String parseLine(String line){
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        this.line = line;
+        return line;
+    }
+
+    @Override
+    protected void onStatus(JSONObject json) throws TwitterException {
+        for (StreamListener listener : listeners) {
+            ((StatusListener)listener).onStatus(asStatus(json));
         }
-        try {
-            String line;
-            line = br.readLine();
-            if (null == line) {
-                //invalidate this status stream
-                throw new IOException("the end of the stream has been reached");
+    }
+    @Override
+    protected void onDelete(JSONObject json) throws TwitterException, JSONException {
+        for (StreamListener listener : listeners) {
+            JSONObject deletionNotice = json.getJSONObject("delete");
+            if(deletionNotice.has("status")){
+                ((StatusListener)listener).onDeletionNotice(new StatusDeletionNoticeImpl(deletionNotice.getJSONObject("status")));
+            }else{
+                JSONObject directMessage = deletionNotice.getJSONObject("direct_message");
+                ((UserStreamListener)listener).onDeletionNotice(ParseUtil.getLong("id", directMessage)
+                        , ParseUtil.getInt("user_id", directMessage));
             }
-            if (line.length() > 0) {
-                logger.debug("received:", line);
-                try {
-                    JSONObject json = new JSONObject(line);
-                    if (!json.isNull ("sender")) {
-                        userStreamListener.onDirectMessage (new DirectMessageJSONImpl (json));
-                    } else if (!json.isNull("text")) {
-                        listener.onStatus(new StatusJSONImpl(json));
-                    } else if (!json.isNull("direct_message")) {
-                        userStreamListener.onDirectMessage(new DirectMessageJSONImpl(json.getJSONObject("direct_message")));
-                    } else if (!json.isNull("delete")) {
-                        listener.onDeletionNotice(new StatusDeletionNoticeImpl(json));
-                    }
-                    else if (!json.isNull("limit")) {
-                        listener.onTrackLimitationNotice(ParseUtil.getInt("track", json.getJSONObject("limit")));
-                    } else if (!json.isNull ("scrub_geo")) {
-                            // Not implemented yet
-                            System.out.println ("Geo-tagging deletion notice (not implemented yet): " + line);
-                    } else if (!json.isNull("friends")) {
-                        JSONArray friends = json.getJSONArray("friends");
-                        int[] friendIds = new int[friends.length()];
-                        for (int i = 0; i < friendIds.length; ++i)
-                            friendIds[i] = friends.getInt(i);
-                        userStreamListener.onFriendList(friendIds);
-                    } else if (!json.isNull("event")) {
-                        String event = json.getString("event");
-                        User source = new UserJSONImpl(json.getJSONObject("source"));
-                        User target = new UserJSONImpl(json.getJSONObject("target"));
-
-                        if ("favorite".equals(event)) {
-                            Status targetObject = new StatusJSONImpl(json.getJSONObject("target_object"));
-                            userStreamListener.onFavorite(source, target, targetObject);
-                        } else if ("unfavorite".equals(event)) {
-                            Status targetObject = new StatusJSONImpl(json.getJSONObject("target_object"));
-                            userStreamListener.onUnfavorite(source, target, targetObject);
-                        } else if ("retweet".equals(event)) {
-                            // note: retweet events also show up as statuses
-                            Status targetObject = new StatusJSONImpl(json.getJSONObject("target_object"));
-                            userStreamListener.onRetweet(source, target, targetObject);
-                        } else if ("follow".equals(event)) {
-                            userStreamListener.onFollow(source, target);
-                        } else if ("unfollow".equals(event)) {
-                            userStreamListener.onUnfollow(source, target);
-                        } else if (event.startsWith("list_")) {
-                            UserList targetObject = new UserListJSONImpl (json.getJSONObject ("target_object"));
-
-                             if ("list_user_subscribed".equals (event)) {
-                                 userStreamListener.onUserListSubscribed(source, target, targetObject);
-                             } else if ("list_created".equals (event)) {
-                                 userStreamListener.onUserListCreated(source, targetObject);
-                             } else if ("list_updated".equals (event)) {
-                                 userStreamListener.onUserListUpdated(source, targetObject);
-                             } else if ("list_destroyed".equals (event)) {
-                                 userStreamListener.onUserListDestroyed(source, targetObject);
-                             }
-                         } else if ("block".equals(event)) {
-                           userStreamListener.onBlock (source, target);
-                         } else if ("unblock".equals (event)) {
-                             userStreamListener.onUnblock (source, target);
-                         } else {
-                             logger.info("Received unknown event type '" + event + "': " + line);
-                         }
-                     } else {
-                        // tmp: just checking what kind of unknown event we're receiving on this stream
-                        logger.info("Received unknown event: " + line);
-                    }
-                } catch (JSONException jsone) {
-                    listener.onException(jsone);
-                }
-            }
-        } catch (IOException ioe) {
-            try {
-                is.close();
-            } catch (IOException ignore) {
-            }
-
-            streamAlive = false;
-            throw new TwitterException("Stream closed.", ioe);
+        }
+    }
+    @Override
+    protected void onLimit(JSONObject json) throws TwitterException, JSONException {
+        for (StreamListener listener : listeners) {
+            ((StatusListener)listener).onTrackLimitationNotice(ParseUtil.getInt("track", json.getJSONObject("limit")));
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void close() throws IOException {
-        is.close();
-        br.close();
-        if (null != response) {
-            response.disconnect();
+    @Override
+    protected void onScrubGeo(JSONObject json) throws TwitterException, JSONException {
+        JSONObject scrubGeo = json.getJSONObject("scrub_geo");
+        for (StreamListener listener : listeners) {
+            ((StatusListener) listener).onScrubGeo(ParseUtil.getInt("user_id", scrubGeo)
+                    , ParseUtil.getLong("up_to_status_id", scrubGeo));
+        }
+
+    }
+
+    @Override
+    public void onException(Exception e) {
+        for (StreamListener listener : listeners) {
+            listener.onException(e);
         }
     }
 }

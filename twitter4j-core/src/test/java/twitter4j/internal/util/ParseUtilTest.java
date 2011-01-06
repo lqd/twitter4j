@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,5 +47,8 @@ public class ParseUtilTest extends TestCase {
 
     public void testParseLongReturns101(){
         assertEquals(101, ParseUtil.getLong("100+"));
+    }
+    public void testParseIntOverflow(){
+        assertEquals(-1, ParseUtil.getInt("4294967295"));
     }
 }

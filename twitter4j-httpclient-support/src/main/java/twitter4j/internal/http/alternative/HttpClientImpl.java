@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import twitter4j.TwitterException;
 import twitter4j.internal.http.HttpClientConfiguration;
 import twitter4j.internal.http.HttpParameter;
@@ -84,10 +86,12 @@ public class HttpClientImpl implements twitter4j.internal.http.HttpClient {
         schemeRegistry.register(
                 new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
         ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(schemeRegistry);
-        cm.setMaxTotalConnections(conf.getHttpMaxTotalConnections());
+        cm.setMaxTotal(conf.getHttpMaxTotalConnections());
         cm.setDefaultMaxPerRoute(conf.getHttpDefaultMaxPerRoute());
         DefaultHttpClient client = new DefaultHttpClient(cm);
-
+        HttpParams params = client.getParams();
+        HttpConnectionParams.setConnectionTimeout(params, conf.getHttpConnectionTimeout());
+        HttpConnectionParams.setSoTimeout(params, conf.getHttpReadTimeout());
 
         if (conf.getHttpProxyHost() != null && !conf.getHttpProxyHost().equals("")) {
             HttpHost proxy = new HttpHost(conf.getHttpProxyHost(), conf.getHttpProxyPort());

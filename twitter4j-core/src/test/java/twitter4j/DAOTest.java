@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,14 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import junit.framework.AssertionFailedError;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.http.AccessToken;
-import twitter4j.http.AuthorizationFactory;
 import twitter4j.http.OAuthAuthorization;
-import twitter4j.internal.http.HttpClient;
-import twitter4j.internal.http.HttpClientFactory;
 import twitter4j.internal.http.HttpClientImpl;
 import twitter4j.internal.http.HttpClientWrapper;
 import twitter4j.internal.org.json.JSONArray;
@@ -104,7 +100,7 @@ public class DAOTest extends TwitterTestBase {
 
     public void testLocation() throws Exception {
         JSONArray array = getJSONArrayFromClassPath("/trends-available.json");
-        ResponseList<Location> locations = LocationJSONImpl.createLocationList(array, null);
+        ResponseList<Location> locations = LocationJSONImpl.createLocationList(array);
         assertEquals(23,locations.size());
         Location location = locations.get(0);
         assertEquals("GB", location.getCountryCode());
@@ -166,6 +162,7 @@ public class DAOTest extends TwitterTestBase {
         schema = new String[]{
                 "slug",
                 "name",
+                "size",
         };
         url="http://api.twitter.com/1/users/suggestions.json";
         List categories = CategoryJSONImpl.createCategoriesList(validateJSONArraySchema(url, schema), null);
@@ -174,6 +171,7 @@ public class DAOTest extends TwitterTestBase {
         schema = new String[]{
                 "slug",
                 "name",
+                "size",
                 "categories/*",
                 "users/*"
         };
@@ -184,6 +182,7 @@ public class DAOTest extends TwitterTestBase {
         schema = new String[]{
                 "result/places/name",
                 "result/places/street_address",
+                "result/places/attributes/*",
                 "result/places/country_code",
                 "result/places/id",
                 "result/places/country",
@@ -192,6 +191,7 @@ public class DAOTest extends TwitterTestBase {
                 "result/places/full_name",
                 "result/places/bounding_box/*",
                 "result/places/contained_within/place_type",
+                "result/places/contained_within/attributes/*",
                 "result/places/contained_within/street_address",
                 "result/places/contained_within/url",
                 "result/places/contained_within/bounding_box/type",
@@ -222,6 +222,7 @@ public class DAOTest extends TwitterTestBase {
                 "previous_cursor",
                 "previous_cursor_str",
                 "lists/id",
+                "lists/id_str",
                 "lists/member_count",
                 "lists/description",
                 "lists/name",
@@ -231,6 +232,7 @@ public class DAOTest extends TwitterTestBase {
                 "lists/uri",
                 "lists/full_name",
                 "lists/mode",
+                "lists/following",
 
         };
         url = "http://api.twitter.com/1/twit4j2/lists.json";
@@ -238,6 +240,7 @@ public class DAOTest extends TwitterTestBase {
 
         schema = new String[]{
                 "id",
+                "id_str",
                 "member_count",
                 "description",
                 "name",
@@ -247,6 +250,7 @@ public class DAOTest extends TwitterTestBase {
                 "uri",
                 "full_name",
                 "mode",
+                "following",
 
         };
         url="http://api.twitter.com/1/twit4j2/lists/9499823.json";
@@ -254,30 +258,36 @@ public class DAOTest extends TwitterTestBase {
         assertEquals("",userList.getDescription());
         assertEquals("@twit4j2/test",userList.getFullName());
         assertEquals(9499823,userList.getId());
-        assertEquals(3,userList.getMemberCount());
+        assertTrue(1 < userList.getMemberCount());
         assertEquals("test",userList.getName());
         assertEquals("test",userList.getSlug());
         assertEquals(0,userList.getSubscriberCount());
         assertEquals("/twit4j2/test",userList.getURI().toString());
         assertNotNull(userList.getUser());
         assertTrue(userList.isPublic());
+        assertFalse(userList.isFollowing());
 
 
         schema = new String[]{
                 "favorited",
                 "in_reply_to_status_id",
+                "in_reply_to_status_id_str",
                 "created_at",
                 "geo",
                 "place",
                 "source",
                 "in_reply_to_screen_name",
                 "in_reply_to_user_id",
+                "in_reply_to_user_id_str",
                 "coordinates",
                 "truncated",
                 "contributors",
                 "id",
+                "id_str",
                 "text",
-                "user/*"
+                "user/*",
+                "retweeted",
+                "retweet_count"
 
         };
         url="http://api.twitter.com/1/statuses/show/2245071380.json";
@@ -305,14 +315,20 @@ public class DAOTest extends TwitterTestBase {
                 "verified",
                 "time_zone",
                 "profile_background_color",
+                "profile_use_background_image",
                 "protected",
                 "name",
                 "profile_text_color",
                 "followers_count",
                 "id",
+                "id_str",
                 "lang",
                 "statuses_count",
-                "utc_offset"};
+                "follow_request_sent",
+                "utc_offset",
+                "listed_count",
+                "is_translator",
+                "show_all_inline_media"};
 
         url="http://api.twitter.com/1/users/show/yusukey.json";
         User user = new UserJSONImpl(validateJSONObjectSchema(url, schema));
@@ -333,7 +349,7 @@ public class DAOTest extends TwitterTestBase {
         }
         for (int i = 0; i < knownNames.length; i++) {
             if (debug) {
-                System.out.println("kownName[" + i + "]:" + knownNames[i]);
+                System.out.println("knownName[" + i + "]:" + knownNames[i]);
             }
             String knownName = knownNames[i];
             int index;
@@ -581,6 +597,7 @@ public class DAOTest extends TwitterTestBase {
         assertEquals(20, categories.size());
         assertEquals("art-design", categories.get(0).getSlug());
         assertEquals("Art & Design", categories.get(0).getName());
+        assertTrue(0 < categories.get(0).getSize());
 
     }
     public void testPlaceAsJSON() throws Exception {
@@ -673,11 +690,6 @@ public class DAOTest extends TwitterTestBase {
         assertDeserializedFormIsSingleton(TwitterMethod.BLOCKING_USERS);
     }
 
-    public void testDevice() throws Exception {
-        assertDeserializedFormIsSingleton(Device.SMS);
-        assertDeserializedFormIsSingleton(Device.NONE);
-    }
-
     /**
      *
      * @param obj the object to be asserted
@@ -694,7 +706,7 @@ public class DAOTest extends TwitterTestBase {
         Object that = ois.readObject();
         byteInputStream.close();
         ois.close();
-        assertEquals(obj,that);
+        assertEquals(obj, that);
         return that;
     }
 

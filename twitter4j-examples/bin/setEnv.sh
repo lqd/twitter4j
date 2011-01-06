@@ -1,13 +1,9 @@
 #!/bin/sh
 if  [ -z $JAVA_HOME ] ; then
- export JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home"
+ export JAVA_HOME="/Library/Java/Home"
 fi
 
-for jar in ../*.jar;do
- export CLASSPATH=$CLASSPATH:$jar
-done
-
-for jar in lib/*.jar;do
+for jar in ../lib/*.jar;do
  export CLASSPATH=$CLASSPATH:$jar
 done
 

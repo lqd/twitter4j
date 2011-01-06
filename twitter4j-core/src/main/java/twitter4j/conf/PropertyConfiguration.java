@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.conf;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Set;
@@ -41,6 +41,7 @@ import twitter4j.internal.util.StringUtil;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public final class PropertyConfiguration extends ConfigurationBase implements java.io.Serializable {
+
     public static final String DEBUG = "debug";
     public static final String SOURCE = "source";
     public static final String HTTP_USER_AGENT = "http.userAgent";
@@ -80,12 +81,17 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
     public static final String SEARCH_BASE_URL = "searchBaseURL";
     public static final String STREAM_BASE_URL = "streamBaseURL";
     public static final String USER_STREAM_BASE_URL = "userStreamBaseURL";
+    public static final String SITE_STREAM_BASE_URL = "siteStreamBaseURL";
 
 
     public static final String ASYNC_NUM_THREADS = "async.numThreads";
     public static final String ASYNC_DISPATCHER_IMPL = "async.dispatherImpl";
     public static final String INCLUDE_RTS = "includeRTs";
+    public static final String INCLUDE_ENTITIES = "includeEntities";
     public static final String STREAM_USER_REPLIES_ALL = "stream.user.repliesAll";
+
+    public static final String MEDIA_PROVIDER = "media.provier";
+    public static final String MEDIA_PROVIDER_API_KEY = "media.provierAPIKey";
 
     // hidden portion
     public static final String CLIENT_VERSION = "clientVersion";
@@ -100,8 +106,12 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
     }
 
     public PropertyConfiguration(Properties props){
+        this(props, "/");
+    }
+
+    public PropertyConfiguration(Properties props, String treePath){
         super();
-        setFieldsWithTreePath(props, "/");
+        setFieldsWithTreePath(props, treePath);
     }
 
     PropertyConfiguration(String treePath) {
@@ -111,7 +121,7 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
         try {
             props = (Properties)System.getProperties().clone();
             normalize(props);
-        } catch (AccessControlException ace) {
+        }catch(SecurityException ignore){
             // Unsigned applets are not allowed to access System properties
             props = new Properties();
         }
@@ -329,11 +339,23 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
         if (notNull(props, prefix, USER_STREAM_BASE_URL)) {
             setUserStreamBaseURL(getString(props, prefix, USER_STREAM_BASE_URL));
         }
+        if (notNull(props, prefix, SITE_STREAM_BASE_URL)) {
+            setSiteStreamBaseURL(getString(props, prefix, SITE_STREAM_BASE_URL));
+        }
         if (notNull(props, prefix, INCLUDE_RTS)) {
             setIncludeRTsEnbled(getBoolean(props, prefix, INCLUDE_RTS));
         }
+        if (notNull(props, prefix, INCLUDE_ENTITIES)) {
+            setIncludeEntitiesEnbled(getBoolean(props, prefix, INCLUDE_ENTITIES));
+        }
         if (notNull(props, prefix, STREAM_USER_REPLIES_ALL)) {
             setUserStreamRepliesAllEnabled(getBoolean(props, prefix, STREAM_USER_REPLIES_ALL));
+        }
+        if (notNull(props, prefix, MEDIA_PROVIDER)) {
+            setMediaProvider(getString(props, prefix, MEDIA_PROVIDER));
+        }
+        if (notNull(props, prefix, MEDIA_PROVIDER_API_KEY)) {
+            setMediaProviderAPIKey(getString(props, prefix, MEDIA_PROVIDER_API_KEY));
         }
     }
 

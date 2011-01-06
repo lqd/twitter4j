@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,49 @@ package twitter4j;
  * @author Rémy Rakic at gmail.com
  * @since Twitter4J 2.1.3
  */
-public class UserStreamAdapter extends StatusAdapter implements UserStreamListener {
+public class UserStreamAdapter extends StatusAdapter implements UserStreamListener{
+    public void onDeletionNotice(long directMessageId, int userId) {
+    }
+
     public void onFriendList(int[] friendIds) {
     }
-    public void onFavorite(User source, User target, Status targetObject) {
+
+    public void onFavorite(User source, User target, Status favoritedStatus) {
     }
 
-    public void onFollow(User source, User target) {
+    public void onFollow(User source, User followedUser) {
     }
 
-    public void onUnfavorite(User source, User target, Status targetObject) {
+    public void onUnfavorite(User source, User target, Status unfavoritedStatus) {
     }
 
-    public void onRetweet(User source, User target, Status targetObject) {
-    }
-
-    public void onUnfollow(User source, User target) {
+    public void onRetweet(User source, User target, Status retweetedStatus) {
     }
 
     public void onDirectMessage(DirectMessage directMessage) {
     }
 
-    public void onUserListSubscribed(User subscriber, User listOwner, UserList list) {
+    public void onUserListSubscription(User subscriber, User listOwner, UserList list) {
     }
 
-    public void onUserListCreated(User listOwner, UserList list) {
+    public void onUserListCreation(User listOwner, UserList list) {
     }
 
-    public void onUserListUpdated(User listOwner, UserList list) {
+    public void onUserListUpdate(User listOwner, UserList list) {
     }
 
-    public void onUserListDestroyed(User listOwner, UserList list) {
+    public void onUserListDeletion(User listOwner, UserList list) {
     }
 
-    public void onBlock(User source, User target) {
+    public void onUserProfileUpdate(User updatedUser) {
     }
 
-    public void onUnblock(User source, User target) {
+    public void onBlock(User source, User blockedUser) {
+    }
+
+    public void onUnblock(User source, User unblockedUser) {
+    }
+
+    public void onException(Exception ex) {
     }
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.internal.async;
 
+import twitter4j.conf.ConfigurationContext;
+
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -39,6 +41,10 @@ public final class DispatcherFactory {
     public DispatcherFactory(DispatcherConfiguration conf) {
         dispatcherImpl = conf.getDispatcherImpl();
         this.conf = conf;
+    }
+
+    public DispatcherFactory() {
+        this(ConfigurationContext.getInstance());
     }
 
     /**

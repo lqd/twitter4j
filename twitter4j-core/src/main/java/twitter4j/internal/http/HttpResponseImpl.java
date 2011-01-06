@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package twitter4j.internal.http;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -56,6 +58,11 @@ public class HttpResponseImpl extends HttpResponse {
 
     public String getResponseHeader(String name) {
         return con.getHeaderField(name);
+    }
+
+    @Override
+    public Map<String, List<String>> getResponseHeaderFields() {
+        return con.getHeaderFields();
     }
 
     /**

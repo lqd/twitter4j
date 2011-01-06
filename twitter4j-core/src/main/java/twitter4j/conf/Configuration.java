@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,11 @@ public interface Configuration extends HttpClientConfiguration
     boolean isDebugEnabled();
 
     String getUserAgent();
+
+    /**
+     * @return source
+     * @deprecated source parameter is no longer supported.
+     */
 
     String getSource();
 
@@ -111,7 +116,15 @@ public interface Configuration extends HttpClientConfiguration
     
     String getUserStreamBaseURL();
 
+    String getSiteStreamBaseURL();
+
     boolean isIncludeRTsEnabled();
 
+    boolean isIncludeEntitiesEnabled();
+
     boolean isUserStreamRepliesAllEnabled();
+
+    String getMediaProvider();
+
+    String getMediaProviderAPIKey();
 }

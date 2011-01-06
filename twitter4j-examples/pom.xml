@@ -3,12 +3,12 @@
     <parent>
       <groupId>org.twitter4j</groupId>
       <artifactId>twitter4j</artifactId>
-      <version>2.1.7-SNAPSHOT</version>
+      <version>2.1.11-SNAPSHOT</version>
     </parent>
 
     <groupId>org.twitter4j</groupId>
     <artifactId>twitter4j-examples</artifactId>
-    <version>2.1.7-SNAPSHOT</version>
+    <version>2.1.11-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>twitter4j-examples</name>
     <description>A Java library for the Twitter API</description>
@@ -107,29 +107,18 @@
         <dependency>
             <groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
-            <version>2.1.7-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>2.1.11-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-media-support</artifactId>
+            <version>2.1.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>3.8.2</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>nlog4j</artifactId>
-            <version>1.2.25</version>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>rome</groupId>
-            <artifactId>rome</artifactId>
-            <version>0.9</version>
-            <scope>provided</scope>
-            <optional>true</optional>
         </dependency>
     </dependencies>
     <build>

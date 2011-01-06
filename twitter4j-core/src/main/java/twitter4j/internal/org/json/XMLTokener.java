@@ -28,7 +28,7 @@ SOFTWARE.
  * The XMLTokener extends the JSONTokener to provide additional methods
  * for the parsing of XML texts.
  * @author JSON.org
- * @version 2008-09-18
+ * @version 2010-12-24
  */
 @SuppressWarnings("unchecked")
 public class XMLTokener extends JSONTokener {
@@ -67,7 +67,7 @@ public class XMLTokener extends JSONTokener {
         StringBuffer sb = new StringBuffer();
         for (;;) {
             c = next();
-            if (c == 0) {
+            if (end()) {
                 throw syntaxError("Unclosed CDATA");
             }
             sb.append(c);
@@ -121,11 +121,11 @@ public class XMLTokener extends JSONTokener {
     /**
      * Return the next entity. These entities are translated to Characters:
      *     <code>&amp;  &apos;  &gt;  &lt;  &quot;</code>.
-     * @param a An ampersand character.
+     * @param ampersand An ampersand character.
      * @return  A Character or an entity String if the entity is not recognized.
      * @throws JSONException If missing ';' in XML entity.
      */
-    public Object nextEntity(char a) throws JSONException {
+    public Object nextEntity(char ampersand) throws JSONException {
         StringBuffer sb = new StringBuffer();
         for (;;) {
             char c = next();
@@ -137,9 +137,9 @@ public class XMLTokener extends JSONTokener {
                 throw syntaxError("Missing ';' in XML entity: &" + sb);
             }
         }
-        String s = sb.toString();
-        Object e = entity.get(s);
-        return e != null ? e : a + s + ";";
+        String string = sb.toString();
+        Object object = entity.get(string);
+        return object != null ? object : ampersand + string + ";";
     }
 
 
@@ -305,15 +305,15 @@ public class XMLTokener extends JSONTokener {
     	int i;
     	int j;
     	int offset = 0;
-    	int n = to.length();
-        char[] circle = new char[n];
+    	int length = to.length();
+        char[] circle = new char[length];
         
         /*
          * First fill the circle buffer with as many characters as are in the
          * to string. If we reach an early end, bail.
          */
         
-    	for (i = 0; i < n; i += 1) {
+    	for (i = 0; i < length; i += 1) {
     		c = next();
     		if (c == 0) {
     			return false;
@@ -329,14 +329,14 @@ public class XMLTokener extends JSONTokener {
     		/*
     		 * Compare the circle buffer with the to string. 
     		 */
-    		for (i = 0; i < n; i += 1) {
+    		for (i = 0; i < length; i += 1) {
     			if (circle[j] != to.charAt(i)) {
     				b = false;
     				break;
     			}
     			j += 1;
-    			if (j >= n) {
-    				j -= n;
+    			if (j >= length) {
+    				j -= length;
     			}
     		}
     		/*
@@ -358,8 +358,8 @@ public class XMLTokener extends JSONTokener {
     		 */
     		circle[offset] = c;
     		offset += 1;
-    		if (offset >= n) {
-    			offset -= n;
+    		if (offset >= length) {
+    			offset -= length;
     		}
     	}
     }

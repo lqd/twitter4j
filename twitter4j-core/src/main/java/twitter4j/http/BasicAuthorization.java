@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,9 @@ public class BasicAuthorization implements Authorization, java.io.Serializable {
         return basic;
     }
 
+    /**
+     * #{inheritDoc}
+     */
     public boolean isEnabled() {
         return true;
     }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ public final class HTMLEntity {
                 break;
             }
             semicolonIndex = original.indexOf(";", index);
-            if (-1 != semicolonIndex && 10 > (semicolonIndex - index)) {
+            if (-1 != semicolonIndex) {
                 escaped = original.substring(index, semicolonIndex + 1);
                 entity = escapeEntityMap.get(escaped);
                 if (null != entity) {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -89,8 +89,19 @@ public interface DirectMessageMethodsAsync {
      * Destroys the direct message specified in the required ID parameter. The authenticating user must be the recipient of the specified direct message.
 	 * <br>This method calls http://api.twitter.com/1/direct_messages/destroy
 	 * @param id int
-     * @see <a href="http://dev.twitter.com/doc/post/direct_messages/destroy">POST direct_messages/destroy | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/direct_messages/destroy/:id">POST direct_messages/destroy/:id | dev.twitter.com</a>
 	 * @since Twitter4J 2.0.1
 	 */
-	void destroyDirectMessage(int id);
+	void destroyDirectMessage(long id);
+
+    /**
+     * Returns a single direct message, specified by an id parameter.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/direct_messages/show/:id.json
+     *
+     * @param id message id
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     * @since Twitter4J 2.1.9
+     */
+    void showDirectMessage(long id);
 }

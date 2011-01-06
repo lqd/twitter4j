@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import static twitter4j.internal.util.ParseUtil.getBoolean;
 import static twitter4j.internal.util.ParseUtil.getInt;
 import static twitter4j.internal.util.ParseUtil.getRawString;
 
@@ -33,9 +34,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
+
 
 /**
  * A data class representing Basic list information element
@@ -54,11 +57,15 @@ import twitter4j.internal.org.json.JSONObject;
     private String uri;
     private boolean mode;
     private User user;
+    private boolean following;
     private static final long serialVersionUID = -6345893237975349030L;
 
     /*package*/ UserListJSONImpl(HttpResponse res) throws TwitterException {
         super(res);
-        init(res.asJSONObject());
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        JSONObject json = res.asJSONObject();
+        init(json);
+        DataObjectFactoryUtil.registerJSONObject(this,json);
     }
 
     /*package*/ UserListJSONImpl(JSONObject json) throws TwitterException {
@@ -67,15 +74,17 @@ import twitter4j.internal.org.json.JSONObject;
     }
 
     private void init(JSONObject json) throws TwitterException {
-            id = getInt("id", json);
-            name = getRawString("name", json);
-            fullName = getRawString("full_name", json);
-            slug = getRawString("slug", json);
-            description = getRawString("description", json);
-            subscriberCount = getInt("subscriber_count", json);
-            memberCount = getInt("member_count", json);
-            uri = getRawString("uri", json);
-            mode = "public".equals(getRawString("mode", json));
+        id = getInt("id", json);
+        name = getRawString("name", json);
+        fullName = getRawString("full_name", json);
+        slug = getRawString("slug", json);
+        description = getRawString("description", json);
+        subscriberCount = getInt("subscriber_count", json);
+        memberCount = getInt("member_count", json);
+        uri = getRawString("uri", json);
+        mode = "public".equals(getRawString("mode", json));
+        following = getBoolean("following", json);
+
         try {
             if (!json.isNull("user")) {
                 user = new UserJSONImpl(json.getJSONObject("user"));
@@ -155,7 +164,14 @@ import twitter4j.internal.org.json.JSONObject;
     public boolean isPublic() {
         return mode;
     }
-        
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isFollowing() {
+        return following;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -163,16 +179,43 @@ import twitter4j.internal.org.json.JSONObject;
         return user;
     }
 
-    /*package*/ static PagableResponseList<UserList> createUserListList(HttpResponse res) throws TwitterException {
+    /*package*/ static PagableResponseList<UserList> createPagableUserListList(HttpResponse res) throws TwitterException {
         try {
+            DataObjectFactoryUtil.clearThreadLocalMap();
             JSONObject json = res.asJSONObject();
             JSONArray list = json.getJSONArray("lists");
             int size = list.length();
             PagableResponseList<UserList> users =
                     new PagableResponseListImpl<UserList>(size, json, res);
             for (int i = 0; i < size; i++) {
-                users.add(new UserListJSONImpl(list.getJSONObject(i)));
+                JSONObject userListJson = list.getJSONObject(i);
+                UserList userList = new UserListJSONImpl(userListJson);
+                users.add(userList);
+                DataObjectFactoryUtil.registerJSONObject(userList, userListJson);
             }
+            DataObjectFactoryUtil.registerJSONObject(users, json);
+            return users;
+        } catch (JSONException jsone) {
+            throw new TwitterException(jsone);
+        } catch (TwitterException te) {
+            throw te;
+        }
+    }
+
+    /*package*/ static ResponseList<UserList> createUserListList(HttpResponse res) throws TwitterException {
+        try {
+            DataObjectFactoryUtil.clearThreadLocalMap();
+            JSONArray list = res.asJSONArray();
+            int size = list.length();
+            ResponseList<UserList> users =
+                    new ResponseListImpl<UserList>(size, res);
+            for (int i = 0; i < size; i++) {
+                JSONObject userListJson = list.getJSONObject(i);
+                UserList userList = new UserListJSONImpl(userListJson);
+                users.add(userList);
+                DataObjectFactoryUtil.registerJSONObject(userList, userListJson);
+            }
+            DataObjectFactoryUtil.registerJSONObject(users, list);
             return users;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -208,8 +251,9 @@ import twitter4j.internal.org.json.JSONObject;
                 ", subscriberCount=" + subscriberCount +
                 ", memberCount=" + memberCount +
                 ", uri='" + uri + '\'' +
-                ", mode='" + mode + '\'' +
+                ", mode=" + mode +
                 ", user=" + user +
+                ", following=" + following +
                 '}';
     }
 }

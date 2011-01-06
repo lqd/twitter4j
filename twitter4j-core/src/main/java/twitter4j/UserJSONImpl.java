@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+
 import static twitter4j.internal.util.ParseUtil.getBoolean;
 import static twitter4j.internal.util.ParseUtil.getDate;
 import static twitter4j.internal.util.ParseUtil.getInt;
@@ -36,6 +37,7 @@ import java.net.URL;
 import java.util.Date;
 
 import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -65,6 +67,8 @@ import twitter4j.internal.org.json.JSONObject;
     private String profileLinkColor;
     private String profileSidebarFillColor;
     private String profileSidebarBorderColor;
+    private boolean profileUseBackgroundImage;
+    private boolean showAllInlineMedia;
     private int friendsCount;
     private Date createdAt;
     private int favouritesCount;
@@ -76,13 +80,17 @@ import twitter4j.internal.org.json.JSONObject;
     private int statusesCount;
     private boolean isGeoEnabled;
     private boolean isVerified;
+    private boolean translator;
     private int listedCount;
     private boolean isFollowRequestSent;
     private static final long serialVersionUID = -6345893237975349030L;
 
     /*package*/UserJSONImpl(HttpResponse res) throws TwitterException {
         super(res);
-        init(res.asJSONObject());
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        JSONObject json = res.asJSONObject();
+        init(json);
+        DataObjectFactoryUtil.registerJSONObject(this, json);
     }
 
     /*package*/UserJSONImpl(JSONObject json) throws TwitterException {
@@ -103,14 +111,16 @@ import twitter4j.internal.org.json.JSONObject;
             isProtected = getBoolean("protected", json);
             isGeoEnabled = getBoolean("geo_enabled", json);
             isVerified = getBoolean("verified", json);
+            translator = getBoolean("is_translator", json);
             followersCount = getInt("followers_count", json);
-            listedCount = getInt("listed_count", json);
 
             profileBackgroundColor = getRawString("profile_background_color", json);
             profileTextColor = getRawString("profile_text_color", json);
             profileLinkColor = getRawString("profile_link_color", json);
             profileSidebarFillColor = getRawString("profile_sidebar_fill_color", json);
             profileSidebarBorderColor = getRawString("profile_sidebar_border_color", json);
+            profileUseBackgroundImage = getBoolean("profile_use_background_image", json);
+            showAllInlineMedia = getBoolean("show_all_inline_media", json);
             friendsCount = getInt("friends_count", json);
             createdAt = getDate("created_at", json, "EEE MMM dd HH:mm:ss z yyyy");
             favouritesCount = getInt("favourites_count", json);
@@ -311,6 +321,20 @@ import twitter4j.internal.org.json.JSONObject;
     /**
      * {@inheritDoc}
      */
+    public boolean isProfileUseBackgroundImage() {
+        return profileUseBackgroundImage;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isShowAllInlineMedia() {
+        return showAllInlineMedia;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public int getFriendsCount() {
         return friendsCount;
     }
@@ -396,6 +420,13 @@ import twitter4j.internal.org.json.JSONObject;
     /**
      * {@inheritDoc}
      */
+    public boolean isTranslator() {
+        return translator;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public int getListedCount() {
         return listedCount;
     }
@@ -409,14 +440,19 @@ import twitter4j.internal.org.json.JSONObject;
 
     /*package*/ static PagableResponseList<User> createPagableUserList(HttpResponse res) throws TwitterException {
         try {
+            DataObjectFactoryUtil.clearThreadLocalMap();
             JSONObject json = res.asJSONObject();
             JSONArray list = json.getJSONArray("users");
             int size = list.length();
             PagableResponseList<User> users =
                     new PagableResponseListImpl<User>(size, json, res);
             for (int i = 0; i < size; i++) {
-                users.add(new UserJSONImpl(list.getJSONObject(i)));
+                JSONObject userJson = list.getJSONObject(i);
+                User user = new UserJSONImpl(userJson);
+                DataObjectFactoryUtil.registerJSONObject(user, userJson);
+                users.add(user);
             }
+            DataObjectFactoryUtil.registerJSONObject(users, json);
             return users;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -430,12 +466,17 @@ import twitter4j.internal.org.json.JSONObject;
 
     /*package*/ static ResponseList<User> createUserList(JSONArray list, HttpResponse res) throws TwitterException {
         try {
+            DataObjectFactoryUtil.clearThreadLocalMap();
             int size = list.length();
             ResponseList<User> users =
                     new ResponseListImpl<User>(size, res);
             for (int i = 0; i < size; i++) {
-                users.add(new UserJSONImpl(list.getJSONObject(i)));
+                JSONObject json = list.getJSONObject(i);
+                User user = new UserJSONImpl(json);
+                users.add(user);
+                DataObjectFactoryUtil.registerJSONObject(user, json);
             }
+            DataObjectFactoryUtil.registerJSONObject(users, list);
             return users;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -463,11 +504,12 @@ import twitter4j.internal.org.json.JSONObject;
     @Override
     public String toString() {
         return "UserJSONImpl{" +
-                ", id=" + id +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", screenName='" + screenName + '\'' +
                 ", location='" + location + '\'' +
                 ", description='" + description + '\'' +
+                ", isContributorsEnabled=" + isContributorsEnabled +
                 ", profileImageUrl='" + profileImageUrl + '\'' +
                 ", url='" + url + '\'' +
                 ", isProtected=" + isProtected +
@@ -478,16 +520,22 @@ import twitter4j.internal.org.json.JSONObject;
                 ", profileLinkColor='" + profileLinkColor + '\'' +
                 ", profileSidebarFillColor='" + profileSidebarFillColor + '\'' +
                 ", profileSidebarBorderColor='" + profileSidebarBorderColor + '\'' +
+                ", profileUseBackgroundImage=" + profileUseBackgroundImage +
+                ", showAllInlineMedia=" + showAllInlineMedia +
                 ", friendsCount=" + friendsCount +
                 ", createdAt=" + createdAt +
                 ", favouritesCount=" + favouritesCount +
                 ", utcOffset=" + utcOffset +
                 ", timeZone='" + timeZone + '\'' +
                 ", profileBackgroundImageUrl='" + profileBackgroundImageUrl + '\'' +
-                ", profileBackgroundTile='" + profileBackgroundTiled + '\'' +
+                ", profileBackgroundTiled=" + profileBackgroundTiled +
+                ", lang='" + lang + '\'' +
                 ", statusesCount=" + statusesCount +
-                ", geoEnabled=" + isGeoEnabled +
-                ", verified=" + isVerified +
+                ", isGeoEnabled=" + isGeoEnabled +
+                ", isVerified=" + isVerified +
+                ", translator=" + translator +
+                ", listedCount=" + listedCount +
+                ", isFollowRequestSent=" + isFollowRequestSent +
                 '}';
     }
 }

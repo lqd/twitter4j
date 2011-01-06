@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,84 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import static twitter4j.TwitterMethod.ADD_LIST_MEMBER;
-import static twitter4j.TwitterMethod.AVAILABLE_TRENDS;
-import static twitter4j.TwitterMethod.BLOCKING_USERS;
-import static twitter4j.TwitterMethod.BLOCKING_USERS_IDS;
-import static twitter4j.TwitterMethod.CHECK_LIST_MEMBERSHIP;
-import static twitter4j.TwitterMethod.CHECK_LIST_SUBSCRIPTION;
-import static twitter4j.TwitterMethod.CREATE_BLOCK;
-import static twitter4j.TwitterMethod.CREATE_FAVORITE;
-import static twitter4j.TwitterMethod.CREATE_FRIENDSHIP;
-import static twitter4j.TwitterMethod.CREATE_USER_LIST;
-import static twitter4j.TwitterMethod.CURRENT_TRENDS;
-import static twitter4j.TwitterMethod.DAILY_TRENDS;
-import static twitter4j.TwitterMethod.DELETE_LIST_MEMBER;
-import static twitter4j.TwitterMethod.DESTROY_BLOCK;
-import static twitter4j.TwitterMethod.DESTROY_DIRECT_MESSAGES;
-import static twitter4j.TwitterMethod.DESTROY_FAVORITE;
-import static twitter4j.TwitterMethod.DESTROY_FRIENDSHIP;
-import static twitter4j.TwitterMethod.DESTROY_STATUS;
-import static twitter4j.TwitterMethod.DESTROY_USER_LIST;
-import static twitter4j.TwitterMethod.DIRECT_MESSAGES;
-import static twitter4j.TwitterMethod.DISABLE_NOTIFICATION;
-import static twitter4j.TwitterMethod.ENABLE_NOTIFICATION;
-import static twitter4j.TwitterMethod.EXISTS_BLOCK;
-import static twitter4j.TwitterMethod.EXISTS_FRIENDSHIP;
-import static twitter4j.TwitterMethod.FAVORITES;
-import static twitter4j.TwitterMethod.FOLLOWERS_IDS;
-import static twitter4j.TwitterMethod.FOLLOWERS_STATUSES;
-import static twitter4j.TwitterMethod.FRIENDS_IDS;
-import static twitter4j.TwitterMethod.FRIENDS_STATUSES;
-import static twitter4j.TwitterMethod.FRIENDS_TIMELINE;
-import static twitter4j.TwitterMethod.GEO_DETAILS;
-import static twitter4j.TwitterMethod.HOME_TIMELINE;
-import static twitter4j.TwitterMethod.INCOMING_FRIENDSHIPS;
-import static twitter4j.TwitterMethod.LIST_MEMBERS;
-import static twitter4j.TwitterMethod.LIST_SUBSCRIBERS;
-import static twitter4j.TwitterMethod.LOCATION_TRENDS;
-import static twitter4j.TwitterMethod.LOOKUP_USERS;
-import static twitter4j.TwitterMethod.MENTIONS;
-import static twitter4j.TwitterMethod.NEAR_BY_PLACES;
-import static twitter4j.TwitterMethod.OUTGOING_FRIENDSHIPS;
-import static twitter4j.TwitterMethod.PUBLIC_TIMELINE;
-import static twitter4j.TwitterMethod.RATE_LIMIT_STATUS;
-import static twitter4j.TwitterMethod.REPORT_SPAM;
-import static twitter4j.TwitterMethod.RETWEETED_BY;
-import static twitter4j.TwitterMethod.RETWEETED_BY_IDS;
-import static twitter4j.TwitterMethod.RETWEETED_BY_ME;
-import static twitter4j.TwitterMethod.RETWEETED_TO_ME;
-import static twitter4j.TwitterMethod.RETWEETS;
-import static twitter4j.TwitterMethod.RETWEETS_OF_ME;
-import static twitter4j.TwitterMethod.RETWEET_STATUS;
-import static twitter4j.TwitterMethod.REVERSE_GEO_CODE;
-import static twitter4j.TwitterMethod.SEARCH;
-import static twitter4j.TwitterMethod.SEARCH_USERS;
-import static twitter4j.TwitterMethod.SEND_DIRECT_MESSAGE;
-import static twitter4j.TwitterMethod.SENT_DIRECT_MESSAGES;
-import static twitter4j.TwitterMethod.SHOW_FRIENDSHIP;
-import static twitter4j.TwitterMethod.SHOW_STATUS;
-import static twitter4j.TwitterMethod.SHOW_USER;
-import static twitter4j.TwitterMethod.SUBSCRIBE_LIST;
-import static twitter4j.TwitterMethod.SUGGESTED_USER_CATEGORIES;
-import static twitter4j.TwitterMethod.TEST;
-import static twitter4j.TwitterMethod.TRENDS;
-import static twitter4j.TwitterMethod.UNSUBSCRIBE_LIST;
-import static twitter4j.TwitterMethod.UPDATE_DELIVERY_DEVICE;
-import static twitter4j.TwitterMethod.UPDATE_PROFILE;
-import static twitter4j.TwitterMethod.UPDATE_PROFILE_BACKGROUND_IMAGE;
-import static twitter4j.TwitterMethod.UPDATE_PROFILE_COLORS;
-import static twitter4j.TwitterMethod.UPDATE_PROFILE_IMAGE;
-import static twitter4j.TwitterMethod.UPDATE_STATUS;
-import static twitter4j.TwitterMethod.UPDATE_USER_LIST;
-import static twitter4j.TwitterMethod.USER_LISTS;
-import static twitter4j.TwitterMethod.USER_LIST_MEMBERSHIPS;
-import static twitter4j.TwitterMethod.USER_LIST_STATUSES;
-import static twitter4j.TwitterMethod.USER_LIST_SUBSCRIPTIONS;
-import static twitter4j.TwitterMethod.USER_SUGGESTIONS;
-import static twitter4j.TwitterMethod.USER_TIMELINE;
-import static twitter4j.TwitterMethod.VERIFY_CREDENTIALS;
-import static twitter4j.TwitterMethod.WEEKLY_TRENDS;
+import static twitter4j.TwitterMethod.*;
 
 import java.io.File;
 import java.util.Date;
@@ -147,10 +70,12 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         SavedSearchesMethodsAsync,
         LocalTrendsMethodsAsync,
         GeoMethodsAsync,
+        LegalResourcesAsync,
+        NewTwitterMethodsAsync,
         HelpMethodsAsync {
     private static final long serialVersionUID = -2008667933225051907L;
-    private Twitter twitter;
-    private TwitterListener listener;
+    private final Twitter twitter;
+    private final TwitterListener listener;
 
     /**
      * Creates a basic authenticated AsyncTwitter instance.
@@ -161,11 +86,12 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
      */
     public AsyncTwitter(String screenName, String password, TwitterListener listener) {
         super(ConfigurationContext.getInstance(), screenName, password);
-        twitter = new TwitterFactory().getInstance(auth);
+        twitter = new TwitterFactory(ConfigurationContext.getInstance()).getInstance(screenName, password);
         this.listener = listener;
     }
 
     /*package*/
+    @SuppressWarnings("deprecation")
     AsyncTwitter(Configuration conf, Authorization auth, TwitterListener listener) {
         super(conf, auth);
         twitter = new TwitterFactory(conf).getInstance(auth);
@@ -506,6 +432,50 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
     /**
      * {@inheritDoc}
      */
+    public void getRetweetedByUser(final String screenName, final Paging paging) {
+        getDispatcher().invokeLater(new AsyncTask(RETWEETED_BY_USER, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotRetweetedByUser(twitter.getRetweetedByUser(screenName, paging));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getRetweetedByUser(final int userId, final Paging paging) {
+        getDispatcher().invokeLater(new AsyncTask(RETWEETED_BY_USER, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotRetweetedByUser(twitter.getRetweetedByUser(userId, paging));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getRetweetedToUser(final String screenName, final Paging paging) {
+        getDispatcher().invokeLater(new AsyncTask(RETWEETED_TO_USER, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotRetweetedToUser(twitter.getRetweetedToUser(screenName, paging));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getRetweetedToUser(final int userId, final Paging paging) {
+        getDispatcher().invokeLater(new AsyncTask(RETWEETED_TO_USER, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotRetweetedToUser(twitter.getRetweetedToUser(userId, paging));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void showStatus(final long id) {
         getDispatcher().invokeLater(new AsyncTask(SHOW_STATUS, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
@@ -723,7 +693,50 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
                 listener.gotUserSuggestions(twitter.getUserSuggestions(categorySlug));
             }
         });
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void getMemberSuggestions(final String categorySlug) {
+        getDispatcher().invokeLater(new AsyncTask(MEMBER_SUGGESTIONS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotMemberSuggestions(twitter.getMemberSuggestions(categorySlug));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getProfileImage(final String screenName, final ProfileImage.ImageSize size) {
+        getDispatcher().invokeLater(new AsyncTask(PROFILE_IMAGE, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotProfileImage(twitter.getProfileImage(screenName, size));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getAccountTotals() {
+        getDispatcher().invokeLater(new AsyncTask(ACCOUNT_TOTALS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotAccountTotals(twitter.getAccountTotals());
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getAccountSettings() {
+        getDispatcher().invokeLater(new AsyncTask(ACCOUNT_SETTINGS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotAccountSettings(twitter.getAccountSettings());
+            }
+        });
     }
 
     /**
@@ -908,10 +921,10 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
     /**
      * {@inheritDoc}
      */
-    public void getUserListMemberships(final String listOwnerScreenName, final long cursor){
+    public void getUserListMemberships(final String listMemberScreenName, final long cursor){
         getDispatcher().invokeLater(new AsyncTask(USER_LIST_MEMBERSHIPS, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
-                listener.gotUserListMemberships(twitter.getUserListMemberships(listOwnerScreenName, cursor));
+                listener.gotUserListMemberships(twitter.getUserListMemberships(listMemberScreenName, cursor));
             }
         });
     }
@@ -923,6 +936,28 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         getDispatcher().invokeLater(new AsyncTask(USER_LIST_SUBSCRIPTIONS, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
                 listener.gotUserListSubscriptions(twitter.getUserListSubscriptions(listOwnerScreenName, cursor));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getAllSubscribingUserLists(final String screenName) {
+        getDispatcher().invokeLater(new AsyncTask(ALL_USER_LISTS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotAllUserLists(twitter.getAllUserLists(screenName));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getAllSubscribingUserLists(final int userId) {
+        getDispatcher().invokeLater(new AsyncTask(ALL_USER_LISTS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotAllUserLists(twitter.getAllUserLists(userId));
             }
         });
     }
@@ -950,6 +985,27 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void addUserListMembers(final int listId, final int[] userIds) {
+        getDispatcher().invokeLater(new AsyncTask(ADD_LIST_MEMBERS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.addedUserListMembers(twitter.addUserListMembers(listId, userIds));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addUserListMembers(final int listId, final String[] screenNames) {
+        getDispatcher().invokeLater(new AsyncTask(ADD_LIST_MEMBERS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.addedUserListMembers(twitter.addUserListMembers(listId, screenNames));
+            }
+        });
+    }
     /**
      * {@inheritDoc}
      */
@@ -1089,13 +1145,26 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
     /**
      * {@inheritDoc}
      */
-    public void destroyDirectMessage(final int id) {
-        getDispatcher().invokeLater(new AsyncTask(DESTROY_DIRECT_MESSAGES, listener) {
+    public void destroyDirectMessage(final long id) {
+        getDispatcher().invokeLater(new AsyncTask(DESTROY_DIRECT_MESSAGE, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
                 listener.destroyedDirectMessage(twitter.destroyDirectMessage(id));
             }
         });
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void showDirectMessage(final long id) {
+        getDispatcher().invokeLater(new AsyncTask(DIRECT_MESSAGE, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotDirectMessage(twitter.showDirectMessage(id));
+            }
+        });
+    }
+
+    /*Friendship Methods*/
 
     /**
      * {@inheritDoc}
@@ -1218,6 +1287,53 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void lookupFriendships(final String[] screenNames) {
+        getDispatcher().invokeLater(new AsyncTask(LOOKUP_FRIENDSHIPS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.lookedUpFriendships(twitter.lookupFriendships(screenNames));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void lookupFriendships(final int[] ids) {
+        getDispatcher().invokeLater(new AsyncTask(LOOKUP_FRIENDSHIPS, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.lookedUpFriendships(twitter.lookupFriendships(ids));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void updateFriendship(final String screenName
+            , final boolean enableDeviceNotification, final boolean retweet) {
+        getDispatcher().invokeLater(new AsyncTask(UPDATE_FRIENDSHIP, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.updatedFriendship(twitter.updateFriendship(screenName
+                        , enableDeviceNotification, retweet));
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void updateFriendship(final int userId
+            , final boolean enableDeviceNotification, final boolean retweet) {
+        getDispatcher().invokeLater(new AsyncTask(UPDATE_FRIENDSHIP, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.updatedFriendship(twitter.updateFriendship(userId
+                        , enableDeviceNotification, retweet));
+            }
+        });
+    }
 
     /* Social Graph Methods */
 
@@ -1371,9 +1487,17 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
      */
     public void updateProfile(final String name, final String email, final String url
             , final String location, final String description) {
+        updateProfile(name, url, location, description);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void updateProfile(final String name, final String url
+            , final String location, final String description) {
         getDispatcher().invokeLater(new AsyncTask(UPDATE_PROFILE, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
-                listener.updatedProfile(twitter.updateProfile(name, email, url,
+                listener.updatedProfile(twitter.updateProfile(name, url,
                         location, description));
             }
         });
@@ -1386,17 +1510,6 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         getDispatcher().invokeLater(new AsyncTask(RATE_LIMIT_STATUS, listener) {
             public void invoke(TwitterListener listener) throws TwitterException {
                 listener.gotRateLimitStatus(twitter.getRateLimitStatus());
-            }
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void updateDeliveryDevice(final Device device) {
-        getDispatcher().invokeLater(new AsyncTask(UPDATE_DELIVERY_DEVICE, listener) {
-            public void invoke(TwitterListener listener) throws TwitterException {
-                listener.updatedDeliveryDevice(twitter.updateDeliveryDevice(device));
             }
         });
     }
@@ -1720,6 +1833,26 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
     }
 
     /* Geo Methods */
+    /**
+     * {@inheritDoc}
+     */
+    public void searchPlaces(final GeoQuery query){
+        getDispatcher().invokeLater(new AsyncTask(SEARCH_PLACES, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.searchedPlaces(twitter.searchPlaces(query));
+            }
+        });
+    }
+
+    public void getSimilarPlaces(final GeoLocation location, final String name, final String containedWithin
+            , final String streetAddress) {
+        getDispatcher().invokeLater(new AsyncTask(SIMILAR_PLACES, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotSimilarPlaces(twitter.getSimilarPlaces(location, name, containedWithin, streetAddress));
+            }
+        });
+    }
+
 
     /**
      * {@inheritDoc}
@@ -1754,6 +1887,48 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
         });
     }
 
+    public void createPlace(final String name, final String containedWithin, final String token
+            , final GeoLocation location, final String streetAddress) {
+        getDispatcher().invokeLater(new AsyncTask(CREATE_PLACE, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.createdPlace(twitter.createPlace(name, containedWithin, token, location, streetAddress));
+            }
+        });
+    }
+    /* Leagl Resources */
+    /**
+     * {@inheritDoc}
+     */
+    public void getTermsOfService() {
+        getDispatcher().invokeLater(new AsyncTask(TERMS_OF_SERVICE, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotTermsOfService(twitter.getTermsOfService());
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void getPrivacyPolicy() {
+        getDispatcher().invokeLater(new AsyncTask(PRIVACY_POLICY, listener) {
+            public void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotPrivacyPolicy(twitter.getPrivacyPolicy());
+            }
+        });
+    }
+
+    /* #newtwitter Methods */
+
+    public void getRelatedResults(final long statusId) throws TwitterException {
+        getDispatcher().invokeLater(new AsyncTask(RELATED_RESULTS, listener) {
+            @Override
+            void invoke(TwitterListener listener) throws TwitterException {
+                listener.gotRelatedResults(twitter.getRelatedResults(statusId));
+            }
+        });
+    }
+
     /* Help Methods */
 
     /**
@@ -1775,14 +1950,17 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
      *
      * @since Twitter4J 2.0.2
      */
+    @Override
     public void shutdown(){
+        super.shutdown();
         synchronized (AsyncTwitter.class) {
             if (shutdown) {
                 throw new IllegalStateException("Already shut down");
             }
-            getDispatcher().shutdown();
-            dispatcher = null;
-            super.shutdown();
+            if(dispatcher != null){
+                dispatcher.shutdown();
+                dispatcher = null;
+            }
             shutdown = true;
         }
     }
@@ -1862,7 +2040,6 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
 
     /**
      * {@inheritDoc}
-     * @deprecated Use {@link AsyncTwitterFactory#getInstance(Authorization)}
      */
     @Override
     public void setOAuthAccessToken(AccessToken accessToken) {
@@ -1883,7 +2060,7 @@ public class AsyncTwitter extends TwitterOAuthSupportBase
      */
     @Override
     public AccessToken getOAuthAccessToken(String token, String tokenSecret, String pin) throws TwitterException {
-        return twitter.getOAuthAccessToken(token, tokenSecret, pin);
+        return twitter.getOAuthAccessToken(new RequestToken(token, tokenSecret), pin);
     }
 
     /**

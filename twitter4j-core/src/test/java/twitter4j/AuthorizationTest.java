@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -68,8 +68,8 @@ public class AuthorizationTest extends TwitterTestBase {
     public void testOAuthInstance() throws Exception {
         String consumerSecret;
         String consumerKey;
-        consumerSecret = p.getProperty("browserConsumerSecret");
-        consumerKey = p.getProperty("browserConsumerKey");
+        consumerSecret = p.getProperty("browser.oauth.consumerSecret");
+        consumerKey = p.getProperty("browser.oauth.consumerSecret");
 
         Twitter twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret);
         assertFalse(twitter.isBasicAuthEnabled());

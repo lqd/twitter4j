@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,7 @@ package twitter4j.api;
 
 import java.io.File;
 
-import twitter4j.Device;
-import twitter4j.RateLimitStatus;
-import twitter4j.TwitterException;
-import twitter4j.User;
+import twitter4j.*;
 /**
  * @author Joern Huxhorn - jhuxhorn at googlemail.com
  */
@@ -56,24 +53,9 @@ public interface AccountMethods {
 	 * @since Twitter4J 1.1.4
      * @see <a href="http://dev.twitter.com/doc/get/account/rate_limit_status">GET account/rate_limit_status | dev.twitter.com</a>
 	 */
-	RateLimitStatus getRateLimitStatus()
-			throws TwitterException;
+    RateLimitStatus getRateLimitStatus() throws TwitterException;
 
-	/**
-     * Sets which device Twitter delivers updates to for the authenticating user. Sending none as the device parameter will disable IM or SMS updates.
-	 * <br>This method calls http://api.twitter.com/1/account/update_delivery_device.json
-	 *
-	 * @param device new Delivery device. Must be one of: IM, SMS, NONE.
-	 * @return the updated user
-	 * @throws TwitterException when Twitter service or network is unavailable
-	 * @since Twitter4J 1.0.4
-     * @see <a href="http://dev.twitter.com/doc/post/account/update_delivery_device">POST account/update_delivery_device | dev.twitter.com</a>
-     * @deprecated This endpoint is deprecated and should no longer be used.
-	 */
-	User updateDeliveryDevice(Device device)
-			throws TwitterException;
-
-	/**
+    /**
      * Sets one or more hex values that control the color scheme of the authenticating user's profile page on twitter.com. Each parameter's value must be a valid hexidecimal value, and may be either three or six characters (ex: #fff or #ffffff).
 	 * <br>This method calls http://api.twitter.com/1/account/update_profile_colors.json
 	 * @param profileBackgroundColor optional, can be null
@@ -117,21 +99,59 @@ public interface AccountMethods {
 	User updateProfileBackgroundImage(File image, boolean tile)
 			throws TwitterException;
 
-	/**
-	 * Sets values that users are able to set under the "Account" tab of their settings page. Only the parameters specified(non-null) will be updated.
-	 * <br>This method calls http://api.twitter.com/1/account/update_profile.json
-	 *
-	 * @param name Optional. Maximum of 20 characters.
-	 * @param email Optional. Maximum of 40 characters. Must be a valid email address.
-	 * @param url Optional. Maximum of 100 characters. Will be prepended with "http://" if not present.
-	 * @param location Optional. Maximum of 30 characters. The contents are not normalized or geocoded in any way.
-	 * @param description Optional. Maximum of 160 characters.
-	 * @return the updated user
-	 * @throws TwitterException when Twitter service or network is unavailable
-	 * @since Twitter4J 2.0.2
+    /**
+     * Sets values that users are able to set under the "Account" tab of their settings page. Only the parameters specified(non-null) will be updated.
+     * <br>This method calls http://api.twitter.com/1/account/update_profile.json
+     *
+     * @param name Optional. Maximum of 20 characters.
+     * @param email Optional. Maximum of 40 characters. Must be a valid email address.
+     * @param url Optional. Maximum of 100 characters. Will be prepended with "http://" if not present.
+     * @param location Optional. Maximum of 30 characters. The contents are not normalized or geocoded in any way.
+     * @param description Optional. Maximum of 160 characters.
+     * @return the updated user
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.0.2
      * @see <a href="http://dev.twitter.com/doc/post/account/update_profile">POST account/update_profile | dev.twitter.com</a>
-	 */
-	User updateProfile(String name, String email, String url, String location, String description)
-			throws TwitterException;
+     * @deprecated use {@link AccountMethods#updateProfile(String, String, String, String)} instead
+     */
+    User updateProfile(String name, String email, String url, String location, String description)
+            throws TwitterException;
 
+    /**
+     * Sets values that users are able to set under the "Account" tab of their settings page. Only the parameters specified(non-null) will be updated.
+     * <br>This method calls http://api.twitter.com/1/account/update_profile.json
+     *
+     * @param name Optional. Maximum of 20 characters.
+     * @param url Optional. Maximum of 100 characters. Will be prepended with "http://" if not present.
+     * @param location Optional. Maximum of 30 characters. The contents are not normalized or geocoded in any way.
+     * @param description Optional. Maximum of 160 characters.
+     * @return the updated user
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.1.8
+     * @see <a href="http://dev.twitter.com/doc/post/account/update_profile">POST account/update_profile | dev.twitter.com</a>
+     */
+    User updateProfile(String name, String url, String location, String description)
+            throws TwitterException;
+
+    /**
+     * Returns the current count of friends, followers, updates (statuses) and favorites of the authenticating user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/account/totals.json
+     * @return the current count of friends, followers, updates (statuses) and favorites of the authenticating user
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     * @since Twitter4J 2.1.9
+     */
+    AccountTotals getAccountTotals() throws TwitterException;
+
+    /**
+     * Returns the current trend, geo and sleep time information for the authenticating user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/account/settings.json
+     * @return the current trend, geo and sleep time information for the authenticating user.
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     * @since Twitter4J 2.1.9
+     */
+    AccountSettings getAccountSettings() throws TwitterException;
 }

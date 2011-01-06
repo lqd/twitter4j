@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -52,11 +52,31 @@ public interface ListMembersMethodsAsync {
     void addUserListMember(int listId, int userId);
 
     /**
+     * Adds multiple members to a list, by specifying a comma-separated list of member ids or screen names. The authenticated user must own the list to be able to add members to it. Lists are limited to having 500 members, and you are limited to adding up to 100 members to a list at a time with this method.
+     * <br>This method calls http://api.twitter.com/1/[user]/[list_id]/members/create_all.json
+     * @param listId The id of the list.
+     * @param userIds The array of ids of the user to add as member of the list. up to 100 are allowed in a single request.
+     * @see <a href="http://dev.twitter.com/doc/post/:user/:list_id/create_all">POST :user/:list_id/create_all | dev.twitter.com</a>
+     * @since Twitter4J 2.1.7
+     */
+    void addUserListMembers(int listId, int[] userIds);
+
+    /**
+     * Adds multiple members to a list, by specifying a comma-separated list of member ids or screen names. The authenticated user must own the list to be able to add members to it. Lists are limited to having 500 members, and you are limited to adding up to 100 members to a list at a time with this method.
+     * <br>This method calls http://api.twitter.com/1/[user]/[list_id]/members/create_all.json
+     * @param listId The id of the list.
+     * @param screenNames The array of screen names of the user to add as member of the list. up to 100 are allowed in a single request.
+     * @see <a href="http://dev.twitter.com/doc/post/:user/:list_id/create_all">POST :user/:list_id/create_all | dev.twitter.com</a>
+     * @since Twitter4J 2.1.7
+     */
+    void addUserListMembers(int listId, String[] screenNames);
+
+    /**
      * Removes the specified member from the list. The authenticated user must be the list's owner to remove members from the list.
      * <br>This method calls http://api.twitter.com/1/[listOwner]/[listId]/members.json
      * @param listId The id of the list.
      * @param userId The screen name of the member you wish to remove from the list.
-     * @see <a href="http://dev.twitter.com/doc/delete/:user/:id/members">DELETE :user/:id/members | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/delete/:user/:list_id/members">DELETE :user/:id/members | dev.twitter.com</a>
      * @since Twitter4J 2.1.0
      */
     void deleteUserListMember(int listId, int userId);

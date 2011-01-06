@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.AccessControlException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,8 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
                 // it must be an Android/Dalvik/Harmony side issue!!!!
                 System.setProperty("http.keepAlive", "false");
             }
-        } catch (AccessControlException ace) {
+        }catch(SecurityException ignore){
+            // Unsigned applets are not allowed to access System properties
             isJDK14orEarlier = true;
         }
     }
@@ -95,6 +95,9 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
         setReadTimeout(conf.getHttpReadTimeout());
         setRetryCount(conf.getHttpRetryCount());
         setRetryIntervalSeconds(conf.getHttpRetryIntervalSeconds());
+        if(isProxyConfigured() && isJDK14orEarlier){
+            logger.warn("HTTP Proxy is not supported on JDK1.4 or earlier. Try twitter4j-httpclient-supoprt artifact");
+        }
     }
 
     public void shutdown() {
@@ -226,7 +229,7 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
         for (retriedCount = 0; retriedCount < retry; retriedCount++) {
             int responseCode = -1;
             try {
-                HttpURLConnection con = null;
+                HttpURLConnection con;
                 OutputStream os = null;
                 try {
                     con = getConnection(req.getURL());
@@ -299,9 +302,8 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
                             }
                         }
                     }
-                    if (responseCode < OK || MULTIPLE_CHOICES <= responseCode) {
+                    if (responseCode < OK || (responseCode != FOUND && MULTIPLE_CHOICES <= responseCode)) {
                         if (responseCode == ENHANCE_YOUR_CLAIM ||
-                                responseCode == SERVICE_UNAVAILABLE ||
                                 responseCode == BAD_REQUEST ||
                                 responseCode < INTERNAL_SERVER_ERROR ||
                                 retriedCount == retryCount) {
@@ -377,7 +379,7 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
 
     private HttpURLConnection getConnection(String url) throws IOException {
         HttpURLConnection con = null;
-        if (proxyHost != null && !proxyHost.equals("")) {
+        if (isProxyConfigured() && !isJDK14orEarlier) {
             if (proxyAuthUser != null && !proxyAuthUser.equals("")) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Proxy AuthUser: " + proxyAuthUser);
@@ -413,7 +415,12 @@ public class HttpClientImpl implements HttpClient, HttpResponseCode, java.io.Ser
         if (readTimeout > 0 && !isJDK14orEarlier) {
             con.setReadTimeout(readTimeout);
         }
+        con.setInstanceFollowRedirects(false);
         return con;
+    }
+
+    private boolean isProxyConfigured(){
+        return proxyHost != null && !proxyHost.equals("");
     }
 
     @Override

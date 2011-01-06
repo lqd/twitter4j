@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,5 +36,9 @@ import twitter4j.internal.http.HttpRequest;
 public interface Authorization extends java.io.Serializable {
     String getAuthorizationHeader(HttpRequest req);
 
+    /**
+     * Returns true if authorization credentials are set.
+     * @return true if authorization credentials are set
+     */
     boolean isEnabled();
 }

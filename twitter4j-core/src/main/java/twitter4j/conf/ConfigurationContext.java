@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,14 @@ public final class ConfigurationContext {
     private static final ConfigurationFactory factory;
 
     static {
-        String CONFIG_IMPL = System.getProperty(CONFIGURATION_IMPL, DEFAULT_CONFIGURATION_FACTORY);
+        String CONFIG_IMPL;
+        try {
+            CONFIG_IMPL = System.getProperty(CONFIGURATION_IMPL, DEFAULT_CONFIGURATION_FACTORY);
+        } catch (SecurityException ignore) {
+            // Unsigned applets are not allowed to access System properties
+            CONFIG_IMPL = DEFAULT_CONFIGURATION_FACTORY;
+        }
+
         try {
             factory = (ConfigurationFactory)Class.forName(CONFIG_IMPL).newInstance();
         } catch (ClassNotFoundException cnfe) {

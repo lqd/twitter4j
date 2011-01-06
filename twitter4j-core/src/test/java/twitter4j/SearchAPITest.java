@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -85,10 +85,7 @@ public class SearchAPITest extends TwitterTestBase {
         assertTrue(-1 !=  tweets.get(0).getId());
 //        assertNotNull(tweets.get(0).getIsoLanguageCode());
         String profileImageURL = tweets.get(0).getProfileImageUrl();
-        assertTrue(-1 != profileImageURL.toLowerCase().indexOf(".jpg")
-                || -1 != profileImageURL.toLowerCase().indexOf(".jpeg")
-                || -1 != profileImageURL.toLowerCase().indexOf(".png")
-                || -1 != profileImageURL.toLowerCase().indexOf(".gif"));
+        assertNotNull(profileImageURL);
         String source = tweets.get(0).getSource();
         assertTrue(-1 != source.indexOf("<a href=\"") || "web".equals(source) || "API".equals(source));
 
@@ -107,7 +104,7 @@ public class SearchAPITest extends TwitterTestBase {
 
         queryStr = "%... 日本語 ";
 
-        twitterAPI1.updateStatus(queryStr + new Date());
+        twitter1.updateStatus(queryStr + new Date());
         query = new Query(queryStr);
         queryResult = unauthenticated.search(query);
         assertEquals(queryStr, queryResult.getQuery());
@@ -117,13 +114,13 @@ public class SearchAPITest extends TwitterTestBase {
         queryResult = unauthenticated.search(query);
         assertTrue(0 <= queryResult.getTweets().size());
 
-        query = new Query("from:beastieboys");
+        query = new Query("from:twit4j");
         query.setSinceId(1671199128);
         queryResult = unauthenticated.search(query);
-        assertEquals(0, queryResult.getTweets().size());
+        assertTrue(0 < queryResult.getTweets().size());
 
         query = new Query("\\u5e30%u5e30 <%}& foobar").rpp(100).page(1);
-        QueryResult result = twitterAPI1.search(query);
+        QueryResult result = twitter1.search(query);
     }
 
     public void testTrends() throws Exception{

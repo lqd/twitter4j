@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ import twitter4j.internal.org.json.JSONObject;
 /**
  * @author Rémy Rakic - remy.rakic at gmail.com
  * @since Twitter4J 2.1.3
+ * @deprecated use twitter4j.media.ImageUploader and twitter4j.media.ImageUploaderFactory#getInstance() instead
  */
 public abstract class ImageUpload {
     public static String DEFAULT_TWITPIC_API_KEY = null;
@@ -66,6 +67,7 @@ public abstract class ImageUpload {
      * Returns an image uploader to Twitpic. Handles both BasicAuth and OAuth.
      * Note: When using OAuth, the Twitpic API Key needs to be specified, either with the field ImageUpload.DEFAULT_TWITPIC_API_KEY,
      * or using the getTwitpicUploader (String twitpicAPIKey, OAuthAuthorization auth) method
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getTwitpicUploader(Twitter twitter) throws TwitterException {
         Authorization auth = twitter.getAuthorization();
@@ -78,6 +80,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns a BasicAuth image uploader to Twitpic
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getTwitpicUploader(BasicAuthorization auth) {
         return new TwitpicBasicAuthUploader(auth);
@@ -85,6 +88,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns an OAuth image uploader to Twitpic
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getTwitpicUploader(String twitpicAPIKey, OAuthAuthorization auth) {
         return new TwitpicOAuthUploader(twitpicAPIKey, auth);
@@ -92,6 +96,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns an OAuth image uploader to TweetPhoto
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getTweetPhotoUploader(String tweetPhotoAPIKey, OAuthAuthorization auth) {
         return new TweetPhotoOAuthUploader(tweetPhotoAPIKey, auth);
@@ -99,6 +104,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns an image uploader to YFrog. Handles both BasicAuth and OAuth
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getYFrogUploader(Twitter twitter) throws TwitterException {
         Authorization auth = twitter.getAuthorization();
@@ -111,6 +117,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns a BasicAuth image uploader to YFrog
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getYFrogUploader(BasicAuthorization auth) {
         return new YFrogBasicAuthUploader(auth);
@@ -118,6 +125,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns an OAuth image uploader to YFrog
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getYFrogUploader(String userId, OAuthAuthorization auth) {
         return new YFrogOAuthUploader(userId, auth);
@@ -125,6 +133,7 @@ public abstract class ImageUpload {
 
     /**
      * Returns an OAuth image uploader to img.ly
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getImgLyUploader (OAuthAuthorization auth) {
         return new ImgLyOAuthUploader (auth);
@@ -132,9 +141,18 @@ public abstract class ImageUpload {
 
     /**
      * Returns an OAuth image uploader to Twitgoo
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
      */
     public static ImageUpload getTwitgooUploader(OAuthAuthorization auth) {
         return new TwitgooOAuthUploader (auth);
+    }
+
+    /**
+     * Returns an OAuth image uploader to Twipple
+     * @deprecated use twitter4j.media.ImageUploaderFactory#getInstance() instead
+     */
+    public static ImageUpload getTwippleUploader (OAuthAuthorization auth) {
+        return new TwippleUploader(auth);
     }
 
     private static void ensureBasicEnabled(Authorization auth) {
@@ -764,7 +782,87 @@ public abstract class ImageUpload {
             return "OAuth realm=\"http://api.twitter.com/\"," + OAuthAuthorization.encodeParameters (oauthSignatureParams, ",", true);
         }
     }
-   
+
+    private static class TwippleUploader extends ImageUpload {
+        //TwipplePhoto not support record message at post time
+        private OAuthAuthorization auth;
+
+        private static final String TWIPPLE_UPLOAD_URL = "http://p.twipple.jp/api/upload";
+        private static final String TWITTER_VERIFY_CREDENTIALS = "https://api.twitter.com/1/account/verify_credentials.xml";
+
+        public TwippleUploader(OAuthAuthorization auth) {
+            this.auth = auth;
+        }
+
+        @Override
+        public String upload (File image) throws TwitterException
+        {
+            return upload(new HttpParameter[]{
+                    new HttpParameter ("media", image)
+                    });
+        }
+
+        @Override
+        public String upload (File image, String message) throws TwitterException
+        {
+        // do not send message
+            return upload(new HttpParameter[]{
+                    new HttpParameter ("media", image)
+                    });
+        }
+
+        @Override
+        public String upload (String imageFileName, InputStream imageBody) throws TwitterException
+        {
+            return upload(new HttpParameter[]{
+                    new HttpParameter ("media", imageFileName, imageBody),
+                    });
+        }
+
+        @Override
+        public String upload (String imageFileName, InputStream imageBody, String message) throws TwitterException
+        {
+        // do not send message
+            return upload(new HttpParameter[]{
+                    new HttpParameter ("media", imageFileName, imageBody)
+                    });
+        }
+
+        private String upload(HttpParameter[] additionalParams) throws TwitterException {
+            String signedVerifyCredentialsURL = generateSignedVerifyCredentialsURL();
+
+            HttpParameter[] params = {
+                    new HttpParameter("verify_url", signedVerifyCredentialsURL),
+            };
+            params = appendHttpParameters(params, additionalParams);
+
+            HttpClientWrapper client = new HttpClientWrapper();
+            HttpResponse httpResponse = client.post(TWIPPLE_UPLOAD_URL, params);
+
+            int statusCode = httpResponse.getStatusCode();
+            if (statusCode != 200) {
+                throw new TwitterException("Twipple image upload returned invalid status code", httpResponse);
+            }
+
+            String response = httpResponse.asString();
+            if (-1 != response.indexOf("<rsp stat=\"fail\">")) {
+                String error = response.substring(response.indexOf("msg") + 5, response.lastIndexOf("\""));
+                throw new TwitterException("Twipple image upload failed with this error message: " + error, httpResponse);
+            }
+            if (-1 != response.indexOf("<rsp stat=\"ok\">")) {
+                String media = response.substring(response.indexOf("<mediaurl>") + "<mediaurl>".length(), response.indexOf("</mediaurl>"));
+                return media;
+            }
+
+            throw new TwitterException("Unknown Twipple response", httpResponse);
+        }
+
+        private String generateSignedVerifyCredentialsURL() {
+            List<HttpParameter> oauthSignatureParams = auth.generateOAuthSignatureHttpParams("GET", TWITTER_VERIFY_CREDENTIALS);
+            return TWITTER_VERIFY_CREDENTIALS + "?" + OAuthAuthorization.encodeParameters(oauthSignatureParams);
+        }
+    }
+
     private static HttpParameter[] appendHttpParameters(HttpParameter[] src, HttpParameter[] dst) {
         int srcLen = src.length;
         int dstLen = dst.length;

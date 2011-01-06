@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package twitter4j.api;
 
 
+
 /**
  * @author Joern Huxhorn - jhuxhorn at googlemail.com
  */
@@ -38,7 +39,7 @@ public interface FriendshipMethodsAsync {
 	 *
 	 * @param screenName the screen name of the user to be befriended
 	 * @since Twitter4J 2.0.1
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	void createFriendship(String screenName);
 
@@ -49,7 +50,7 @@ public interface FriendshipMethodsAsync {
 	 *
 	 * @param userId the ID of the user to be befriended
 	 * @since Twitter4J 2.1.0
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	void createFriendship(int userId);
 
@@ -61,7 +62,7 @@ public interface FriendshipMethodsAsync {
 	 * @param screenName the screen name of the user to be befriended
 	 * @param follow Enable notifications for the target user in addition to becoming friends.
 	 * @since Twitter4J 2.0.1
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	void createFriendship(String screenName, boolean follow);
 
@@ -73,7 +74,7 @@ public interface FriendshipMethodsAsync {
 	 * @param userId the ID of the user to be befriended
 	 * @param follow Enable notifications for the target user in addition to becoming friends.
 	 * @since Twitter4J 2.1.0
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	void createFriendship(int userId, boolean follow);
 
@@ -151,4 +152,54 @@ public interface FriendshipMethodsAsync {
      * @see <a href="http://dev.twitter.com/doc/get/friendships/outgoing">GET friendships/outgoing | dev.twitter.com</a>
      */
     void getOutgoingFriendships(long cursor);
+
+    /**
+     * Returns the relationship of the authenticating user to the specified users.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/lookup.json
+     * @param screenNames array of the screen names to lookup
+     *
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    void lookupFriendships(String[] screenNames);
+
+    /**
+     * Returns the relationship of the authenticating user to the specified users.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/lookup.json
+     * @param ids array of the ids to lookup
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    void lookupFriendships(int[] ids);
+
+
+    /**
+     * Allows you to enable or disable retweets and device notifications from the specified user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/update.json
+     * @param screenName screen name to update
+     * @param enableDeviceNotification set true to enable device notification
+     * @param retweets set true to enable retweets
+     *
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    void updateFriendship(String screenName, boolean enableDeviceNotification
+            , boolean retweets);
+
+    /**
+     * Allows you to enable or disable retweets and device notifications from the specified user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/update.json
+     * @param userId user id to update
+     * @param enableDeviceNotification set true to enable device notification
+     * @param retweets set true to enable retweets
+     *
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    void updateFriendship(int userId, boolean enableDeviceNotification
+            , boolean retweets);
 }

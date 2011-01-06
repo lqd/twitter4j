@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ import twitter4j.conf.Configuration;
 import twitter4j.http.Authorization;
 import twitter4j.http.BasicAuthorization;
 import twitter4j.http.NullAuthorization;
+import twitter4j.http.OAuthAuthorization;
 
 /**
  * Base class of Twitter / AsyncTwitter / TwitterStream supports Basic Authorization.
@@ -76,14 +77,14 @@ abstract class TwitterBase implements java.io.Serializable {
     protected final void ensureAuthorizationEnabled() {
         if (!auth.isEnabled()) {
             throw new IllegalStateException(
-                    "Neither user ID/password combination nor OAuth consumer key/secret combination supplied");
+                    "Authentication credentials are missing. See http://twitter4j.org/configuration.html for the detail.");
         }
     }
 
-    protected final void ensureBasicEnabled() {
-        if (!(auth instanceof BasicAuthorization)) {
+    protected final void ensureOAuthEnabled() {
+        if (!(auth instanceof OAuthAuthorization)) {
             throw new IllegalStateException(
-                    "user ID/password combination not supplied");
+                    "OAuth required. Authentication credentials are missing. See http://twitter4j.org/configuration.html for the detail.");
         }
     }
 
@@ -106,6 +107,15 @@ abstract class TwitterBase implements java.io.Serializable {
         if (!auth.equals(that.auth)) return false;
 
         return true;
+    }
+
+    /**
+     * Returns the configuration associated with this instance
+     * @return configuration associated with this instance
+     * @since Twitter4J 2.1.8
+     */
+    public Configuration getConfiguration(){
+        return this.conf;
     }
 
     @Override

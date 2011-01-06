@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,7 @@ class StatusDeletionNoticeImpl implements StatusDeletionNotice, java.io.Serializ
     private int userId;
     private static final long serialVersionUID = 1723338404242596062L;
 
-    /*package*/ StatusDeletionNoticeImpl(JSONObject json) throws JSONException {
-        JSONObject deletionNotice = json.getJSONObject("delete");
-        JSONObject status = deletionNotice.has("status")
-            ? deletionNotice.getJSONObject("status")
-            : deletionNotice.getJSONObject("direct_message");
+    /*package*/ StatusDeletionNoticeImpl(JSONObject status) throws JSONException {
         this.statusId = ParseUtil.getLong("id", status);
         this.userId = ParseUtil.getInt("user_id", status);
     }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -102,6 +102,8 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod RETWEETED_BY_ME = new TwitterMethod("RETWEETED_BY_ME");
     public static final TwitterMethod RETWEETED_TO_ME = new TwitterMethod("RETWEETED_TO_ME");
     public static final TwitterMethod RETWEETS_OF_ME = new TwitterMethod("RETWEETS_OF_ME");
+    public static final TwitterMethod RETWEETED_BY_USER = new TwitterMethod("RETWEETED_BY_USER");
+    public static final TwitterMethod RETWEETED_TO_USER = new TwitterMethod("RETWEETED_TO_USER");
 
     /*Status Methods*/
     public static final TwitterMethod SHOW_STATUS = new TwitterMethod("SHOW_STATUS");
@@ -111,13 +113,15 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod RETWEETS = new TwitterMethod("RETWEETS");
     public static final TwitterMethod RETWEETED_BY = new TwitterMethod("RETWEETED_BY");
     public static final TwitterMethod RETWEETED_BY_IDS = new TwitterMethod("RETWEETED_BY_IDS");
-    
+
     /*User Methods*/
     public static final TwitterMethod SHOW_USER = new TwitterMethod("SHOW_USER");
     public static final TwitterMethod LOOKUP_USERS = new TwitterMethod("LOOKUP_USERS");
     public static final TwitterMethod SEARCH_USERS = new TwitterMethod("SEARCH_USERS");
     public static final TwitterMethod SUGGESTED_USER_CATEGORIES = new TwitterMethod("SUGGESTED_USER_CATEGORIES");
+    public static final TwitterMethod PROFILE_IMAGE = new TwitterMethod("PROFILE_IMAGE");
     public static final TwitterMethod USER_SUGGESTIONS = new TwitterMethod("USER_SUGGESTIONS");
+    public static final TwitterMethod MEMBER_SUGGESTIONS = new TwitterMethod("MEMBER_SUGGESTIONS");
     public static final TwitterMethod FRIENDS_STATUSES = new TwitterMethod("FRIENDS_STATUSES");
     public static final TwitterMethod FOLLOWERS_STATUSES = new TwitterMethod("FOLLOWERS_STATUSES");
 
@@ -130,10 +134,12 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod USER_LIST_STATUSES = new TwitterMethod("USER_LIST_STATUSES");
     public static final TwitterMethod USER_LIST_MEMBERSHIPS = new TwitterMethod("USER_LIST_MEMBERSHIPS");
     public static final TwitterMethod USER_LIST_SUBSCRIPTIONS = new TwitterMethod("USER_LIST_SUBSCRIPTIONS");
+    public static final TwitterMethod ALL_USER_LISTS = new TwitterMethod("ALL_USER_LISTS");
 
     /*List Members Methods*/
     public static final TwitterMethod LIST_MEMBERS = new TwitterMethod("LIST_MEMBERS");
     public static final TwitterMethod ADD_LIST_MEMBER = new TwitterMethod("ADD_LIST_MEMBER");
+    public static final TwitterMethod ADD_LIST_MEMBERS = new TwitterMethod("ADD_LIST_MEMBERS");
     public static final TwitterMethod DELETE_LIST_MEMBER = new TwitterMethod("DELETE_LIST_MEMBER");
     public static final TwitterMethod CHECK_LIST_MEMBERSHIP = new TwitterMethod("CHECK_LIST_MEMBERSHIP");
 
@@ -147,7 +153,8 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod DIRECT_MESSAGES = new TwitterMethod("DIRECT_MESSAGES");
     public static final TwitterMethod SENT_DIRECT_MESSAGES = new TwitterMethod("SENT_DIRECT_MESSAGES");
     public static final TwitterMethod SEND_DIRECT_MESSAGE = new TwitterMethod("SEND_DIRECT_MESSAGE");
-    public static final TwitterMethod DESTROY_DIRECT_MESSAGES = new TwitterMethod("DESTROY_DIRECT_MESSAGES");
+    public static final TwitterMethod DESTROY_DIRECT_MESSAGE = new TwitterMethod("DESTROY_DIRECT_MESSAGE");
+    public static final TwitterMethod DIRECT_MESSAGE = new TwitterMethod("DIRECT_MESSAGE");
 
     /*Friendship Methods*/
     public static final TwitterMethod CREATE_FRIENDSHIP = new TwitterMethod("CREATE_FRIENDSHIP");
@@ -156,6 +163,8 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod SHOW_FRIENDSHIP = new TwitterMethod("SHOW_FRIENDSHIP");
     public static final TwitterMethod INCOMING_FRIENDSHIPS = new TwitterMethod("INCOMING_FRIENDSHIPS");
     public static final TwitterMethod OUTGOING_FRIENDSHIPS = new TwitterMethod("OUTGOING_FRIENDSHIPS");
+    public static final TwitterMethod LOOKUP_FRIENDSHIPS = new TwitterMethod("LOOKUP_FRIENDSHIPS");
+    public static final TwitterMethod UPDATE_FRIENDSHIP = new TwitterMethod("UPDATE_FRIENDSHIP");
 
     /*Social Graph Methods*/
     public static final TwitterMethod FRIENDS_IDS = new TwitterMethod("FRIENDS_IDS");
@@ -164,11 +173,12 @@ public final class TwitterMethod implements java.io.Serializable {
     /*Account Methods*/
     public static final TwitterMethod VERIFY_CREDENTIALS = new TwitterMethod("VERIFY_CREDENTIALS");
     public static final TwitterMethod RATE_LIMIT_STATUS = new TwitterMethod("RATE_LIMIT_STATUS");
-    public static final TwitterMethod UPDATE_DELIVERY_DEVICE = new TwitterMethod("UPDATE_DELIVERY_DEVICE");
     public static final TwitterMethod UPDATE_PROFILE_COLORS = new TwitterMethod("UPDATE_PROFILE_COLORS");
     public static final TwitterMethod UPDATE_PROFILE_IMAGE = new TwitterMethod("UPDATE_PROFILE_IMAGE");
     public static final TwitterMethod UPDATE_PROFILE_BACKGROUND_IMAGE = new TwitterMethod("UPDATE_PROFILE_BACKGROUND_IMAGE");
     public static final TwitterMethod UPDATE_PROFILE = new TwitterMethod("UPDATE_PROFILE");
+    public static final TwitterMethod ACCOUNT_TOTALS = new TwitterMethod("ACCOUNT_TOTALS");
+    public static final TwitterMethod ACCOUNT_SETTINGS = new TwitterMethod("ACCOUNT_SETTINGS");
 
     /*Favorite Methods*/
     public static final TwitterMethod FAVORITES = new TwitterMethod("FAVORITES");
@@ -200,9 +210,19 @@ public final class TwitterMethod implements java.io.Serializable {
     public static final TwitterMethod LOCATION_TRENDS = new TwitterMethod("LOCATION_TRENDS");
 
     /*Geo Methods*/
+    public static final TwitterMethod SEARCH_PLACES = new TwitterMethod("SEARCH_PLACES");
+    public static final TwitterMethod SIMILAR_PLACES = new TwitterMethod("SIMILAR_PLACES");
     public static final TwitterMethod NEAR_BY_PLACES = new TwitterMethod("NEAR_BY_PLACES");
     public static final TwitterMethod REVERSE_GEO_CODE = new TwitterMethod("REVERSE_GEO_CODE");
     public static final TwitterMethod GEO_DETAILS = new TwitterMethod("GEO_DETAILS");
+    public static final TwitterMethod CREATE_PLACE = new TwitterMethod("CREATE_PLACE");
+
+    /* Legal Resources */
+    public static final TwitterMethod TERMS_OF_SERVICE = new TwitterMethod("TERMS_OF_SERVICE");
+    public static final TwitterMethod PRIVACY_POLICY = new TwitterMethod("PRIVACY_POLICY");
+
+    /* #newtwitter Methods */
+    public static final TwitterMethod RELATED_RESULTS = new TwitterMethod("RELATED_RESULTS");
 
     /*Help Methods*/
     public static final TwitterMethod TEST = new TwitterMethod("TEST");

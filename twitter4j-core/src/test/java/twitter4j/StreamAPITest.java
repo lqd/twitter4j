@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package twitter4j;
 
 import twitter4j.http.AccessToken;
+import twitter4j.internal.async.DispatcherFactory;
+import twitter4j.json.DataObjectFactory;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Properties;
 
-public class StreamAPITest extends TwitterTestBase implements StatusListener, UserStreamListener {
+public class StreamAPITest extends TwitterTestBase implements StatusListener, ConnectionLifeCycleListener {
     protected TwitterStream twitterStream = null;
     protected Twitter protectedTwitter = null;
     protected Properties p = new Properties();
-    private int[] friendIds;
-    private User source;
-    private User target;
-    private Status targetObject;
-    private DirectMessage directMessage;
-
-    private User subscriber;
-    private User listOwner;
-    private UserList list;
+    private int userId;
+    private long upToStatusId;
 
     public StreamAPITest(String name) {
         super(name);
@@ -58,9 +52,9 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
         twitterStream = new TwitterStreamFactory().getInstance();
         twitterStream.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
         twitterStream.setOAuthAccessToken(new AccessToken(id1.accessToken, id1.accessTokenSecret));
-        twitterStream.setUserStreamListener(this);
+        twitterStream.addListener(this);
 
-        protectedTwitter = new TwitterFactory().getInstance(id4.screenName, id4.password);
+        protectedTwitter = new TwitterFactory().getInstance(id3.screenName, id3.password);
         this.status = null;
         this.deletionNotice = null;
     }
@@ -69,89 +63,39 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
         super.tearDown();
     }
 
-    public void testUserStream() throws Exception {
-        try {
-            twitterAPI1.createFriendship(id2.id);
-        } catch (TwitterException ignore) {
-        }
-
-        twitterStream.user();
-        Thread.sleep(2000);
-        Status status = twitterAPI1.updateStatus(new Date() + ": test");
-        twitterAPI2.createFavorite(status.getId());
-        waitForNotification();
-//        assertEquals(this.status.getId(), status.getId());
-        assertEquals(source.getId(), id2.id);
-        assertEquals(target.getId(), id1.id);
-        assertEquals(targetObject, status);
-
-        clearObjects();
-        twitterAPI2.destroyFavorite(status.getId());
-        waitForNotification();
-        assertEquals(source.getId(), id2.id);
-        assertEquals(target.getId(), id1.id);
-        assertEquals(targetObject, status);
-
-        clearObjects();
-        twitterAPI2.retweetStatus(status.getId());
-        waitForNotification();
-        assertNotNull(this.status);
-        assertEquals(this.status.getRetweetedStatus(), status);
-    }
-
-    private void clearObjects() {
-        status = null;
-        source = null;
-        target = null;
-        targetObject = null;
-    }
-
-    public void testUserStreamEventTypes() throws Exception {
-        InputStream is = TwitterTestBase.class.getResourceAsStream("/streamingapi-event-testcase.json");
-        UserStream stream = new StatusStreamImpl(is);
-
-        source = null;
-        target = null;
-        ex = null;
-
-        stream.next(this);
-        assertEquals(23456789, source.getId());
-        assertEquals(12345678, target.getId());
-        assertNull(ex);
-
-        source = null;
-        target = null;
-        ex = null;
-
-        // This one is an unknown event type.  We should safely ignore it.
-        stream.next(this);
-        assertNull(source);
-        assertNull(target);
-        assertNull(ex);
-    }
-
     public void testStatusStream() throws Exception {
         InputStream is = TwitterTestBase.class.getResourceAsStream("/streamingapi-testcase.json");
-        StatusStream stream = new StatusStreamImpl(is);
+        StatusStream stream = new StatusStreamImpl(new DispatcherFactory().getInstance(), is);
         stream.next(this);
+        waitForNotification();
         assertEquals(6832057002l, deletionNotice.getStatusId());
         assertEquals(18378841, deletionNotice.getUserId());
         stream.next(this);
+        waitForNotification();
         assertEquals("aaa minha irma ta enchendo aki querendo entra --'", status.getText());
         stream.next(this);
+        waitForNotification();
         assertEquals("Acho retartado ter que esperar para usar o script de novo, por isso só uso o Twitter Followers, o site da empresa é: http://bit.ly/5tNlDp", status.getText());
         stream.next(this);
+        waitForNotification();
         assertEquals(121564, trackLimit);
         stream.next(this);
+        waitForNotification();
         assertEquals("ngantuk banget nguap mulu", status.getText());
+        stream.next(this);
+        waitForNotification();
+        assertEquals(14090452, userId);
+        assertEquals(23260136625l, upToStatusId);
         try {
             stream.next(this);
+            waitForNotification();
             fail("expecting TwitterException");
         } catch (TwitterException te) {
 
         }
         try {
             stream.next(this);
+            waitForNotification();
             fail("expecting IllegalStateException");
         } catch (IllegalStateException ise) {
 
@@ -170,9 +114,8 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
     public void testSamplePush() throws Exception {
         twitterStream.sample();
         waitForStatus();
-        assertNotNull(status.getText());
-        assertTrue("web".equals(status.getSource()) || -1 != status.getSource().indexOf("<a href=\""));
-        twitterStream.cleanup();
+        assertTrue(null != status || null != deletionNotice);
+        twitterStream.cleanUp();
     }
 
 //    public void testFilterFollowPush() throws Exception {
@@ -187,16 +130,30 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
 //        twitterStream.cleanup();
 //    }
     public void testFilterTrackPush() throws Exception {
+        twitterStream.addConnectionLifeCycleListener(this);
+        assertFalse(onConnectCalled);
+        assertFalse(onDisconnectCalled);
+        assertFalse(onCleanUpCalled);
+
         twitterStream.filter(new FilterQuery(0, null, new String[]{"twitter", "iphone"}));
         waitForStatus();
+        assertTrue(onConnectCalled);
+        assertFalse(onDisconnectCalled);
+        assertFalse(onCleanUpCalled);
+
         assertNotNull(status.getText());
         assertTrue("web".equals(status.getSource()) || -1 != status.getSource().indexOf("<a href=\""));
         this.ex = null;
-        twitterStream.filter(new FilterQuery(0, null).track(new String[]{"twitter4j", "ipad"}));
+        twitterStream.filter(new FilterQuery(0, null).track(new String[]{"twitter4j java", "ipad"}));
         waitForStatus();
         assertNull(ex);
 
-        twitterStream.cleanup();
+        twitterStream.cleanUp();
+        Thread.sleep(1000);
+
+        assertTrue(onConnectCalled);
+        assertTrue(onDisconnectCalled);
+        assertTrue(onCleanUpCalled);
     }
 
     public void testFilterIncludesEntities() throws Exception {
@@ -216,94 +173,23 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
 
         assertNull(ex);
 
-        twitterStream.cleanup();
+        twitterStream.cleanUp();
     }
 
-    public void onFriendList(int[] friendIds) {
-        System.out.println("onFriendList");
-        this.friendIds = friendIds;
-        notifyResponse();
+    boolean onConnectCalled = false;
+    boolean onDisconnectCalled = false;
+    boolean onCleanUpCalled = false;
+
+    public void onConnect() {
+        onConnectCalled = true;
     }
 
-    public void onFavorite(User source, User target, Status targetObject) {
-        System.out.println("onFavorite");
-        this.source = source;
-        this.target = target;
-        this.targetObject = targetObject;
-        notifyResponse();
+    public void onDisconnect() {
+        onDisconnectCalled = true;
     }
 
-    public void onUnfavorite(User source, User target, Status targetObject) {
-        System.out.println("onUnfavorite");
-        this.source = source;
-        this.target = target;
-        this.targetObject = targetObject;
-        notifyResponse();
-    }
-
-    public void onFollow(User source, User target) {
-        System.out.println("onFollow");
-        this.source = source;
-        this.target = target;
-        notifyResponse();
-    }
-
-    public void onUnfollow(User source, User target) {
-        System.out.println("onUnfollow");
-        this.source = source;
-        this.target = target;
-        notifyResponse();
-    }
-
-    public void onBlock(User source, User target) {
-        System.out.println("onBlock");
-        this.source = source;
-        this.target = target;
-        notifyResponse();
-    }
-
-    public void onUnblock(User source, User target) {
-        System.out.println("onUnblock");
-        this.source = source;
-        this.target = target;
-        notifyResponse();
-    }
-
-
-    public void onRetweet(User source, User target, Status targetObject) {
-        System.out.println("onRetweet");
-        this.source = source;
-        this.target = target;
-        this.targetObject = targetObject;
-        notifyResponse();
-    }
-
-    public void onDirectMessage(DirectMessage directMessage) {
-        this.directMessage = directMessage;
-        notifyResponse();
-    }
-
-    class TestThread extends Thread {
-        boolean alive = true;
-
-        public void run() {
-            while (alive) {
-                String newStatus = "streaming test:" + new Date();
-                try {
-                    twitterAPI1.updateStatus(newStatus);
-                    protectedTwitter.updateStatus(newStatus);
-                    Thread.sleep(10000);
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void shutdown() {
-            this.alive = false;
-        }
+    public void onCleanUp() {
+        onCleanUpCalled = true;
     }
 
     public void testUnAuthorizedStreamMethods() throws Exception {
@@ -352,9 +238,15 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
 
     public void onStatus(Status status) {
         this.status = status;
+        String json = DataObjectFactory.getRawJSON(status);
+        try {
+            Status statusFromJSON = DataObjectFactory.createStatus(json);
+            assertEquals(status, statusFromJSON);
+        } catch (TwitterException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 //        System.out.println("got status from stream:" + status.toString());
         assertNotNull(status.getText());
-        assertTrue("web".equals(status.getSource()) || -1 != status.getSource().indexOf("<a href=\""));
 //        System.out.println(status.getCreatedAt() + ":" + status.getText() + " from:" + status.getSource());
         notifyResponse();
     }
@@ -377,6 +269,13 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
         notifyResponse();
     }
 
+    public void onScrubGeo(int userId, long upToStatusId) {
+        this.userId = userId;
+        this.upToStatusId = upToStatusId;
+        System.out.println("got onScrubGeo");
+        notifyResponse();
+    }
+
     Exception ex;
 
     public void onException(Exception ex) {
@@ -384,30 +283,4 @@ public class StreamAPITest extends TwitterTestBase implements StatusListener, Us
         ex.printStackTrace();
         notifyResponse();
     }
-
-    public void onUserListSubscribed(User subscriber, User listOwner, UserList list) {
-        this.subscriber = subscriber;
-        this.listOwner = listOwner;
-        this.list = list;
-        notifyResponse();
-    }
-
-    public void onUserListCreated(User listOwner, UserList list) {
-        this.listOwner = listOwner;
-        this.list = list;
-        notifyResponse();
-    }
-
-    public void onUserListUpdated(User listOwner, UserList list) {
-        this.listOwner = listOwner;
-        this.list = list;
-        notifyResponse();
-    }
-
-    public void onUserListDestroyed(User listOwner, UserList list) {
-        this.listOwner = listOwner;
-        this.list = list;
-        notifyResponse();
-    }
-
 }

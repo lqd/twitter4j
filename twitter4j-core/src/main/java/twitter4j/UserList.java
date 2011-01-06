@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -105,4 +105,10 @@ public interface UserList extends Comparable<UserList>, TwitterResponse, java.io
      */
     User getUser();
 
+    /**
+     * Returns if the authenticated user is following the list
+     *
+     * @return if the authenticated user is following the list
+     */
+    boolean isFollowing();
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public interface FavoriteMethodsAsync {
 	 *
 	 * @param id       the ID or screen name of the user for whom to request a list of favorite statuses.
 	 * @since 1.1.2
-     * @see <a href="http://dev.twitter.com/doc/post/favorites/:id/create">POST favorites/:id/create | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/favorites/create/:id">POST favorites/create/:id | dev.twitter.com</a>
 	 */
 	void createFavorite(long id);
 
@@ -82,7 +82,7 @@ public interface FavoriteMethodsAsync {
 	 *
 	 * @param id       the ID or screen name of the user for whom to request a list of un-favorite statuses.
 	 * @since 1.1.2
-     * @see <a href="http://dev.twitter.com/doc/post/favorites/destroy">POST favorites/destroy | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/favorites/destroy/:id">POST favorites/destroy/:id | dev.twitter.com</a>
 	 */
 	void destroyFavorite(long id);
 }

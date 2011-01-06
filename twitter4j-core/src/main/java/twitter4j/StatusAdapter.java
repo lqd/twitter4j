@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,14 @@ package twitter4j;
  * @since Twitter4J 2.1.3
  */
 public class StatusAdapter implements StatusListener {
-    public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-    }
-
-    public void onException(Exception ex) {
-    }
-
     public void onStatus(Status status) {
     }
-
+    public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+    }
     public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
     }
-
+    public void onScrubGeo(int userId, long upToStatusId) {
+    }
+    public void onException(Exception ex) {
+    }
 }

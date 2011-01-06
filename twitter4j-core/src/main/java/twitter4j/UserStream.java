@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import java.io.IOException;
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.1.3
  */
-public interface UserStream extends StatusStream{
+public interface UserStream extends StreamImplementation {
     /**
      * Reads next element from this stream.
      * @param listener a UserStreamListener implementation

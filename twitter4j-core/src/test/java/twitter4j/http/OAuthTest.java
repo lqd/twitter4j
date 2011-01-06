@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -67,11 +67,8 @@ public class OAuthTest extends TwitterTestBase {
     protected void setUp() throws Exception {
         super.setUp();
 
-        String id2token = p.getProperty("id2.oauth_token");
-        String id2tokenSecret = p.getProperty("id2.oauth_token_secret");
-
         twitterStream.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
-        twitterStream.setOAuthAccessToken(new AccessToken(id2token, id2tokenSecret));
+        twitterStream.setOAuthAccessToken(new AccessToken(id2.accessToken, id2.accessTokenSecret));
 
     }
 
@@ -140,6 +137,12 @@ public class OAuthTest extends TwitterTestBase {
         resStr = response.asString();
         String pin = catchPattern(resStr, "<div id=\"oauth_pin\">\n  ", "\n</div>");
         at = twitter.getOAuthAccessToken(rt.getToken(), rt.getTokenSecret(), pin);
+        try {
+            twitter.getOAuthRequestToken();
+        }catch(TwitterException te){
+            fail("expecting IllegalStateException as access token is already available.");
+        }catch(IllegalStateException expected){}
+
 
         assertEquals(at.getScreenName(), id1.screenName);
         assertEquals(at.getUserId(), 6358482);
@@ -318,20 +321,19 @@ public class OAuthTest extends TwitterTestBase {
 
     public void testEncodeParameter() throws Exception {
         //http://wiki.oauth.net/TestCases
-        assertEquals("abcABC123", OAuthAuthorization.encode("abcABC123"));
-        assertEquals("-._~", OAuthAuthorization.encode("-._~"));
-        assertEquals("%25", OAuthAuthorization.encode("%"));
-        assertEquals("%2B", OAuthAuthorization.encode("+"));
-        assertEquals("%26%3D%2A", OAuthAuthorization.encode("&=*"));
-        assertEquals("%0A", OAuthAuthorization.encode("\n"));
-        assertEquals("%20", OAuthAuthorization.encode("\u0020"));
-        assertEquals("%7F", OAuthAuthorization.encode("\u007F"));
-        assertEquals("%C2%80", OAuthAuthorization.encode("\u0080"));
-        assertEquals("%E3%80%81", OAuthAuthorization.encode("\u3001"));
+        assertEquals("abcABC123", HttpParameter.encode("abcABC123"));
+        assertEquals("-._~", HttpParameter.encode("-._~"));
+        assertEquals("%25", HttpParameter.encode("%"));
+        assertEquals("%2B", HttpParameter.encode("+"));
+        assertEquals("%26%3D%2A", HttpParameter.encode("&=*"));
+        assertEquals("%0A", HttpParameter.encode("\n"));
+        assertEquals("%20", HttpParameter.encode("\u0020"));
+        assertEquals("%7F", HttpParameter.encode("\u007F"));
+        assertEquals("%C2%80", HttpParameter.encode("\u0080"));
+        assertEquals("%E3%80%81", HttpParameter.encode("\u3001"));
 
         String unreserved = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-        assertEquals(unreserved, OAuthAuthorization.encode(unreserved));
-
+        assertEquals(unreserved, HttpParameter.encode(unreserved));
     }
 
     public void testNormalizeRequestParameters() throws Exception {

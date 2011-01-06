@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -105,12 +105,12 @@ public interface ListMethodsAsync {
      * List the lists the specified user has been added to.
      * <br>This method calls http://api.twitter.com/1/:user/lists/memberships.json
      *
-     * @param listOwnerScreenName The screen name of the list owner
+     * @param listMemberScreenName The screen name of the list member
      * @param cursor              Breaks the results into pages. A single page contains 20 lists. Provide a value of -1 to begin paging. Provide values as returned to in the response body's next_cursor and previous_cursor attributes to page back and forth in the list.
      * @see <a href="http://dev.twitter.com/doc/get/:user/lists/memberships">GET :user/lists/memberships | dev.twitter.com</a>
      * @since Twitter4J 2.1.1
      */
-    void getUserListMemberships(String listOwnerScreenName, long cursor);
+    void getUserListMemberships(String listMemberScreenName, long cursor);
 
     /**
      * List the lists the specified user follows.
@@ -122,4 +122,24 @@ public interface ListMethodsAsync {
      * @since Twitter4J 2.1.1
      */
 	void getUserListSubscriptions(String listOwnerScreenName, long cursor);
+
+    /**
+     * Returns all lists the authenticating or specified user subscribes to, including their own.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/lists/all.json
+     *
+     * @param screenName screen name to look up
+     * @since Twitter4J 2.1.9
+     */
+    void getAllSubscribingUserLists(String screenName);
+
+    /**
+     * Returns all lists the authenticating or specified user subscribes to, including their own.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/lists/all.json
+     *
+     * @param userId user id to look up
+     * @since Twitter4J 2.1.9
+     */
+    void getAllSubscribingUserLists(int userId);
 }

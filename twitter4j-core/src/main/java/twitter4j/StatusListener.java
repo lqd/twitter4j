@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ package twitter4j;
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.0.4
  */
-public interface StatusListener {
+public interface StatusListener extends StreamListener {
     void onStatus(Status status);
 
     /**
@@ -55,5 +55,11 @@ public interface StatusListener {
      */
     void onTrackLimitationNotice(int numberOfLimitedStatuses);
 
-    void onException(Exception ex);
+    /**
+     * Called upon location deletion messages. Clients are urged to honor deletion requests and remove appropriate geolocation information from both the display and your backing store immediately. Note that in some cases the location deletion message may arrive before a tweet that lies within the deletion range arrives. You should still strip the location data.
+     * @param userId user id
+     * @param upToStatusId up to status id
+     * @since Twitter4J 2.1.9
+     */
+    void onScrubGeo(int userId, long upToStatusId);
 }

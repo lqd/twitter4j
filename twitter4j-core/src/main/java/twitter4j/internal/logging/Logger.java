@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.internal.logging;
 
-import java.security.AccessControlException;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -49,7 +48,8 @@ public abstract class Logger {
         } catch (InstantiationException e) {
             throw new AssertionError(e);
         } catch (IllegalAccessException ignore) {
-        } catch (AccessControlException ignore) {
+        } catch (SecurityException ignore) {
+            // Unsigned applets are not allowed to access System properties
         }
         // use SLF4J if it's found in the classpath
         if (null == loggerFactory) {
@@ -74,7 +74,7 @@ public abstract class Logger {
             loggerFactory = new StdOutLoggerFactory();
         }
         LOGGER_FACTORY = loggerFactory;
-        // loggerFactory.getLogger(Logger.class).info("Will use "+loggerFactory.getClass() + " as logging factory.");
+        loggerFactory.getLogger(Logger.class).debug("Will use "+loggerFactory.getClass() + " as logging factory.");
     }
 
     private static LoggerFactory getLoggerFactory(String checkClassName, String implementationClass) {

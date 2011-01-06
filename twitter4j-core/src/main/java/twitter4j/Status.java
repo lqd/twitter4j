@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -169,24 +169,51 @@ public interface Status extends Comparable<Status>, TwitterResponse, java.io.Ser
      *
      * @return An array of users mentioned in the tweet.
      * @since Twitter4J 2.1.4
+     * @deprecated use {@link #getUserMentionEntities()} instead.
      */
     User[] getUserMentions();
+
+    /**
+     * Returns an array of user mentions in the tweet, or null if no users were mentioned.
+     *
+     * @return An array of user mention entities in the tweet.
+     * @since Twitter4J 2.1.9
+     */
+    UserMentionEntity[] getUserMentionEntities();
 
     /**
      * Returns an array of URLs mentioned in the tweet, or null if no URLs were mentioned.
      *
      * @return An array of URLs mentioned in the tweet.
      * @since Twitter4J 2.1.4
+     * @deprecated use {@link #getURLEntities()} instead.
      */
     URL[] getURLs();
+
+    /**
+     * Returns an array if URLEntity mentioned in the tweet, or null if no URLs were mentioned.
+     *
+     * @return An array of URLEntity mentioned in the tweet.
+     * @since Twitter4J 2.1.9
+     */
+    URLEntity[] getURLEntities();
 
     /**
      * Returns an array of hashtags mentioned in the tweet, or null if no hashtags were mentioned.
      *
      * @return An array of users mentioned in the tweet.
      * @since Twitter4J 2.1.4
+     * @deprecated use {@link #getHashtagEntities()} instead.
      */
     String[] getHashtags();
+
+    /**
+     * Returns an array if hashtag mentioned in the tweet, or null if no hashtag were mentioned.
+     *
+     * @return An array of Hashtag mentioned in the tweet.
+     * @since Twitter4J 2.1.9
+     */
+    HashtagEntity[] getHashtagEntities();
 
     /**
      * Returns the annotations, or null if no annotations are associated with this status.

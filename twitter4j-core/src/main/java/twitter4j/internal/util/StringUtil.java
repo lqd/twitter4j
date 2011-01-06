@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,27 @@ public class StringUtil {
         }
 
         return returnValue;
+    }
 
+    public static String join(int[] follows) {
+        StringBuffer buf = new StringBuffer(11 * follows.length);
+        for (int follow : follows) {
+            if (0 != buf.length()) {
+                buf.append(",");
+            }
+            buf.append(follow);
+        }
+        return buf.toString();
+    }
+
+    public static String join(String[] track) {
+        StringBuffer buf = new StringBuffer(11 * track.length);
+        for (String str : track) {
+            if (0 != buf.length()) {
+                buf.append(",");
+            }
+            buf.append(str);
+        }
+        return buf.toString();
     }
 }

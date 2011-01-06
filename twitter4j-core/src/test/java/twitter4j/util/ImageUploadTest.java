@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -45,14 +45,14 @@ public class ImageUploadTest extends TwitterTestBase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        screenName = p.getProperty("id1");
+        screenName = id1.screenName;
         oauthAuthorization = new OAuthAuthorization(
                 ConfigurationContext.getInstance()
-                , p.getProperty("desktopConsumerKey")
-                , p.getProperty("desktopConsumerSecret")
+                , p.getProperty("oauth.consumerKey")
+                , p.getProperty("oauth.consumerSecret")
                 , new AccessToken(
-                        p.getProperty("id1.oauth_token")
-                        , p.getProperty("id1.oauth_token_secret")
+                        p.getProperty("id1.oauth.accessToken")
+                        , p.getProperty("id1.oauth.accessTokenSecret")
                 )
         );
         twitpicApiKey = p.getProperty("twitpic.apiKey");
@@ -113,6 +113,18 @@ public class ImageUploadTest extends TwitterTestBase {
             String url = ImageUpload.getTwitgooUploader(
                     oauthAuthorization
             ).upload(fileName, is, message);
+            assertTrue(url.length() > 0);
+        } finally {
+            is.close();
+        }
+    }
+
+    public void testTwippleUploader() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/" + fileName);
+        try {
+            String url = ImageUpload.getTwippleUploader(
+                    oauthAuthorization
+            ).upload(fileName, is);
             assertTrue(url.length() > 0);
         } finally {
             is.close();

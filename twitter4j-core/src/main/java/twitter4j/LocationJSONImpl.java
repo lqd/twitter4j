@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ import static twitter4j.internal.util.ParseUtil.getInt;
 import static twitter4j.internal.util.ParseUtil.getRawString;
 import static twitter4j.internal.util.ParseUtil.getUnescapedString;
 import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -68,17 +69,22 @@ import twitter4j.internal.org.json.JSONObject;
     }
 
     /*package*/ static ResponseList<Location> createLocationList(HttpResponse res) throws TwitterException {
-        return createLocationList(res.asJSONArray(), res);
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        return createLocationList(res.asJSONArray());
     }
 
-    /*package*/ static ResponseList<Location> createLocationList(JSONArray list, HttpResponse res) throws TwitterException {
+    /*package*/ static ResponseList<Location> createLocationList(JSONArray list) throws TwitterException {
         try {
             int size = list.length();
             ResponseList<Location> locations =
                     new ResponseListImpl<Location>(size, null);
             for (int i = 0; i < size; i++) {
-                locations.add(new LocationJSONImpl(list.getJSONObject(i)));
+                JSONObject json = list.getJSONObject(i);
+                Location location = new LocationJSONImpl(json);
+                locations.add(location);
+                DataObjectFactoryUtil.registerJSONObject(location, json);
             }
+            DataObjectFactoryUtil.registerJSONObject(locations, list);
             return locations;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);

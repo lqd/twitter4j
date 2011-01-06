@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,13 @@ public class HTMLEntityTest extends TestCase {
 
         original = "&quot;;&;asd&;gt;";
         expected = "\";&;asd&;gt;";
+        assertEquals(expected, HTMLEntity.unescape(original));
+        buf = new StringBuffer(original);
+        HTMLEntity.unescape(buf);
+        assertEquals(expected, buf.toString());
+
+        original = "\\u5e30%u5e30 &lt;%}& foobar &lt;&Cynthia&gt;";
+        expected = "\\u5e30%u5e30 <%}& foobar <&Cynthia>";
         assertEquals(expected, HTMLEntity.unescape(original));
         buf = new StringBuffer(original);
         HTMLEntity.unescape(buf);

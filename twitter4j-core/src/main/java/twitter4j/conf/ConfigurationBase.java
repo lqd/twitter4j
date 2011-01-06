@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.conf;
 
+import twitter4j.Version;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import twitter4j.Version;
 
 /**
  * Configuration base class with default settings.
@@ -69,14 +69,21 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
     private String searchBaseURL;
     private String streamBaseURL;
     private String userStreamBaseURL;
-    
+    private String siteStreamBaseURL;
+
     private String dispatcherImpl;
 
     private int asyncNumThreads;
 
     private boolean includeRTsEnabled;
 
+    private boolean includeEntitiesEnabled;
+
     private boolean userStreamRepliesAllEnabled;
+
+    private String mediaProvider;
+
+    private String mediaProviderAPIKey;
 
     // hidden portion
     private String clientVersion;
@@ -93,6 +100,7 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
     private static final String DEFAULT_SEARCH_BASE_URL = "http://search.twitter.com/";
     private static final String DEFAULT_STREAM_BASE_URL = "http://stream.twitter.com/1/";
     private static final String DEFAULT_USER_STREAM_BASE_URL = "https://userstream.twitter.com/2/";
+    private static final String DEFAULT_SITE_STREAM_BASE_URL = "https://betastream.twitter.com/2b/";
 
     private boolean IS_DALVIK;
     private static final long serialVersionUID = -6610497517837844232L;
@@ -138,6 +146,8 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
 
         setIncludeRTsEnbled(true);
 
+        setIncludeEntitiesEnbled(false);
+
 
         setOAuthRequestTokenURL(DEFAULT_OAUTH_REQUEST_TOKEN_URL);
         setOAuthAuthorizationURL(DEFAULT_OAUTH_AUTHORIZATION_URL);
@@ -152,7 +162,8 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
         // setStreamBaseURL(fixURL(useSSL, "http://stream.twitter.com/1/"));
         setStreamBaseURL(DEFAULT_STREAM_BASE_URL);
         setUserStreamBaseURL(DEFAULT_USER_STREAM_BASE_URL);
-        
+        setSiteStreamBaseURL(DEFAULT_SITE_STREAM_BASE_URL);
+
         setDispatcherImpl("twitter4j.internal.async.DispatcherImpl");
 
         setIncludeRTsEnbled(true);
@@ -161,9 +172,13 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
         try {
             isDalvik = System.getProperty(DALVIK, dalvikDetected);
         }catch(SecurityException ignore){
+            // Unsigned applets are not allowed to access System properties
             isDalvik = dalvikDetected;
         }
         IS_DALVIK = Boolean.valueOf(isDalvik);
+
+        setMediaProvider("YFROG");
+        setMediaProviderAPIKey(null);
     }
 
 
@@ -437,11 +452,19 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
     public String getUserStreamBaseURL () {
         return userStreamBaseURL;
     }
-    
-    protected final void setUserStreamBaseURL (String userStreamBaseURL) {
-        this.userStreamBaseURL = userStreamBaseURL;
+
+    protected final void setUserStreamBaseURL (String siteStreamBaseURL) {
+        this.userStreamBaseURL = siteStreamBaseURL;
     }
-    
+
+    public String getSiteStreamBaseURL () {
+        return siteStreamBaseURL;
+    }
+
+    protected final void setSiteStreamBaseURL (String siteStreamBaseURL) {
+        this.siteStreamBaseURL = siteStreamBaseURL;
+    }
+
     public String getOAuthRequestTokenURL() {
         return oAuthRequestTokenURL;
     }
@@ -492,6 +515,13 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
     protected final void setIncludeRTsEnbled(boolean enabled) {
         this.includeRTsEnabled = enabled;
     }
+    public boolean isIncludeEntitiesEnabled() {
+        return this.includeEntitiesEnabled;
+    }
+
+    protected final void setIncludeEntitiesEnbled(boolean enabled) {
+        this.includeEntitiesEnabled = enabled;
+    }
     public boolean isUserStreamRepliesAllEnabled() {
         return this.userStreamRepliesAllEnabled;
     }
@@ -500,10 +530,25 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
         this.userStreamRepliesAllEnabled = enabled;
     }
 
+    public String getMediaProvider(){
+        return this.mediaProvider;
+    }
+
+    protected final void setMediaProvider(String mediaProvider){
+        this.mediaProvider = mediaProvider;
+    }
+
+    public String getMediaProviderAPIKey(){
+        return this.mediaProviderAPIKey;
+    }
+
+    protected final void setMediaProviderAPIKey(String mediaProviderAPIKey){
+        this.mediaProviderAPIKey = mediaProviderAPIKey;
+    }
+
     @Override
     public int hashCode() {
         int result = (debug ? 1 : 0);
-        result = 31 * result + (source != null ? source.hashCode() : 0);
         result = 31 * result + (userAgent != null ? userAgent.hashCode() : 0);
         result = 31 * result + (user != null ? user.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
@@ -531,6 +576,7 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
         result = 31 * result + (searchBaseURL != null ? searchBaseURL.hashCode() : 0);
         result = 31 * result + (streamBaseURL != null ? streamBaseURL.hashCode() : 0);
         result = 31 * result + (userStreamBaseURL != null ? userStreamBaseURL.hashCode() : 0);
+        result = 31 * result + (siteStreamBaseURL != null ? siteStreamBaseURL.hashCode() : 0);
         result = 31 * result + (dispatcherImpl != null ? dispatcherImpl.hashCode() : 0);
         result = 31 * result + asyncNumThreads;
         result = 31 * result + (includeRTsEnabled ? 1 : 0);
@@ -539,6 +585,8 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
         result = 31 * result + (clientURL != null ? clientURL.hashCode() : 0);
         result = 31 * result + (IS_DALVIK ? 1 : 0);
         result = 31 * result + (requestHeaders != null ? requestHeaders.hashCode() : 0);
+        result = 31 * result + (mediaProvider != null ? mediaProvider.hashCode() : 0);
+        result = 31 * result + (mediaProviderAPIKey != null ? mediaProviderAPIKey.hashCode() : 0);
         return result;
     }
 
@@ -546,7 +594,6 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
     public String toString() {
         return "ConfigurationBase{" +
                 "debug=" + debug +
-                ", source='" + source + '\'' +
                 ", userAgent='" + userAgent + '\'' +
                 ", user='" + user + '\'' +
                 ", password='" + password + '\'' +
@@ -574,14 +621,18 @@ class ConfigurationBase implements Configuration, java.io.Serializable {
                 ", searchBaseURL='" + searchBaseURL + '\'' +
                 ", streamBaseURL='" + streamBaseURL + '\'' +
                 ", userStreamBaseURL='" + userStreamBaseURL + '\'' +
+                ", siteStreamBaseURL='" + siteStreamBaseURL + '\'' +
                 ", dispatcherImpl='" + dispatcherImpl + '\'' +
                 ", asyncNumThreads=" + asyncNumThreads +
                 ", includeRTsEnabled=" + includeRTsEnabled +
+                ", includeEntitiesEnabled=" + includeEntitiesEnabled +
                 ", userStreamRepliesAllEnabled=" + userStreamRepliesAllEnabled +
                 ", clientVersion='" + clientVersion + '\'' +
                 ", clientURL='" + clientURL + '\'' +
                 ", IS_DALVIK=" + IS_DALVIK +
                 ", requestHeaders=" + requestHeaders +
+                ", mediaProvider=" + mediaProvider +
+                ", mediaProviderAPIKey=" + mediaProviderAPIKey +
                 '}';
     }
 

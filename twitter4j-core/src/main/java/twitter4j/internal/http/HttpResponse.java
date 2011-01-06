@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package twitter4j.internal.http;
 
 import java.io.*;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -74,6 +76,7 @@ public abstract class HttpResponse {
     }
 
     public abstract String getResponseHeader(String name);
+    public abstract Map<String, List<String>> getResponseHeaderFields();
 
     /**
      * Returns the response stream.<br>
@@ -158,6 +161,7 @@ public abstract class HttpResponse {
         return responseAsDocument;
     }
 
+    private JSONObject json = null;
     /**
      * Returns the response body as twitter4j.internal.org.json.JSONObject.<br>
      * Disconnects the internal HttpURLConnection silently.
@@ -165,29 +169,30 @@ public abstract class HttpResponse {
      * @throws TwitterException
      */
     public final JSONObject asJSONObject() throws TwitterException {
-        JSONObject json = null;
-        InputStreamReader reader = null;
-        try {
-            if (logger.isDebugEnabled()) {
-                json =  new JSONObject(asString());
-            } else {
-                reader = asReader();
-                json = new JSONObject(new JSONTokener(reader));
-            }
-        } catch (JSONException jsone) {
-            if (logger.isDebugEnabled()) {
-                throw new TwitterException(jsone.getMessage() + ":" + this.responseAsString, jsone);
-            } else {
-                throw new TwitterException(jsone.getMessage(), jsone);
-            }
-        }finally {
-            if(null != reader){
-                try{
-                    reader.close();
-                } catch (IOException ignore) {
+        if (null == json) {
+            InputStreamReader reader = null;
+            try {
+                if (logger.isDebugEnabled()) {
+                    json = new JSONObject(asString());
+                } else {
+                    reader = asReader();
+                    json = new JSONObject(new JSONTokener(reader));
                 }
+            } catch (JSONException jsone) {
+                if (logger.isDebugEnabled()) {
+                    throw new TwitterException(jsone.getMessage() + ":" + this.responseAsString, jsone);
+                } else {
+                    throw new TwitterException(jsone.getMessage(), jsone);
+                }
+            } finally {
+                if (null != reader) {
+                    try {
+                        reader.close();
+                    } catch (IOException ignore) {
+                    }
+                }
+                disconnectForcibly();
             }
-            disconnectForcibly();
         }
         return json;
     }

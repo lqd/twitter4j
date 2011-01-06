@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ package twitter4j;
  * @since Twitter4J 2.1.3
  */
 public interface UserStreamListener extends StatusListener {
+    void onDeletionNotice(long directMessageId, int userId);
+
     /**
      * @param friendIds
      * @since Twitter4J 2.1.3
@@ -40,40 +42,33 @@ public interface UserStreamListener extends StatusListener {
     /**
      * @param source
      * @param target
-     * @param targetObject
+     * @param favoritedStatus
      * @since Twitter4J 2.1.3
      */
-    void onFavorite(User source, User target, Status targetObject);
+    void onFavorite(User source, User target, Status favoritedStatus);
 
     /**
      * @param source
      * @param target
-     * @param targetObject
+     * @param unfavoritedStatus
      * @since Twitter4J 2.1.3
      */
-    void onUnfavorite(User source, User target, Status targetObject);
+    void onUnfavorite(User source, User target, Status unfavoritedStatus);
+
+    /**
+     * @param source
+     * @param followedUser
+     * @since Twitter4J 2.1.3
+     */
+    void onFollow(User source, User followedUser);
 
     /**
      * @param source
      * @param target
+     * @param retweetedStatus
      * @since Twitter4J 2.1.3
      */
-    void onFollow(User source, User target);
-
-    /**
-     * @param source
-     * @param target
-     * @since Twitter4J 2.1.3
-     */
-    void onUnfollow(User source, User target);
-
-    /**
-     * @param source
-     * @param target
-     * @param targetObject
-     * @since Twitter4J 2.1.3
-     */
-    void onRetweet(User source, User target, Status targetObject);
+    void onRetweet(User source, User target, Status retweetedStatus);
 
     /**
      * @param directMessage
@@ -87,40 +82,46 @@ public interface UserStreamListener extends StatusListener {
      * @param list
      * @since Twitter4J 2.1.3
      */
-    void onUserListSubscribed(User subscriber, User listOwner, UserList list);
+    void onUserListSubscription(User subscriber, User listOwner, UserList list);
 
     /**
      * @param listOwner
      * @param list
      * @since Twitter4J 2.1.3
      */
-    void onUserListCreated(User listOwner, UserList list);
+    void onUserListCreation(User listOwner, UserList list);
 
     /**
      * @param listOwner
      * @param list
      * @since Twitter4J 2.1.3
      */
-    void onUserListUpdated(User listOwner, UserList list);
+    void onUserListUpdate(User listOwner, UserList list);
 
     /**
      * @param listOwner
      * @param list
      * @since Twitter4J 2.1.3
      */
-    void onUserListDestroyed(User listOwner, UserList list);
+    void onUserListDeletion(User listOwner, UserList list);
+
+    /**
+     * @param updatedUser updated user
+     * @since Twitter4J 2.1.9
+     */
+    void onUserProfileUpdate(User updatedUser);
 
     /**
      * @param source
-     * @param target
+     * @param blockedUser
      * @since Twitter4J 2.1.3
      */
-    void onBlock(User source, User target);
+    void onBlock(User source, User blockedUser);
 
     /**
      * @param source
-     * @param target
+     * @param unblockedUser
      * @since Twitter4J 2.1.3
      */
-    void onUnblock(User source, User target);
+    void onUnblock(User source, User unblockedUser);
 }

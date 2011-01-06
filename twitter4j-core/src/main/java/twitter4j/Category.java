@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,4 +33,5 @@ package twitter4j;
 public interface Category {
     String getName();
     String getSlug();
+    int getSize();
 }

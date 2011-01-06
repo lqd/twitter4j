@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static twitter4j.internal.util.ParseUtil.getUnescapedString;
 import java.util.Date;
 
 import twitter4j.internal.http.HttpResponse;
+import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
@@ -53,7 +54,10 @@ import twitter4j.internal.org.json.JSONObject;
 
     /*package*/ SavedSearchJSONImpl(HttpResponse res) throws TwitterException {
         super(res);
-        init(res.asJSONObject());
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        JSONObject json = res.asJSONObject();
+        init(json);
+        DataObjectFactoryUtil.registerJSONObject(this, json);
     }
 
     /*package*/ SavedSearchJSONImpl(JSONObject savedSearch) throws TwitterException {
@@ -61,18 +65,23 @@ import twitter4j.internal.org.json.JSONObject;
     }
 
     /*package*/ static ResponseList<SavedSearch> createSavedSearchList(HttpResponse res) throws TwitterException {
-            JSONArray json = res.asJSONArray();
-            ResponseList<SavedSearch> savedSearches;
-            try {
-                savedSearches = new ResponseListImpl<SavedSearch>(json.length(), res);
-                for(int i=0;i<json.length();i++){
-                    savedSearches.add(new SavedSearchJSONImpl(json.getJSONObject(i)));
-                }
-                return savedSearches;
-            } catch (JSONException jsone) {
-                throw new TwitterException(jsone.getMessage() + ":" + res.asString(), jsone);
+        DataObjectFactoryUtil.clearThreadLocalMap();
+        JSONArray json = res.asJSONArray();
+        ResponseList<SavedSearch> savedSearches;
+        try {
+            savedSearches = new ResponseListImpl<SavedSearch>(json.length(), res);
+            for (int i = 0; i < json.length(); i++) {
+                JSONObject savedSearchesJSON = json.getJSONObject(i);
+                SavedSearch savedSearch = new SavedSearchJSONImpl(savedSearchesJSON);
+                savedSearches.add(savedSearch);
+                DataObjectFactoryUtil.registerJSONObject(savedSearch, savedSearchesJSON);
             }
+            DataObjectFactoryUtil.registerJSONObject(savedSearches, json);
+            return savedSearches;
+        } catch (JSONException jsone) {
+            throw new TwitterException(jsone.getMessage() + ":" + res.asString(), jsone);
         }
+    }
 
     private void init(JSONObject savedSearch) throws TwitterException {
             createdAt = getDate("created_at", savedSearch, "EEE MMM dd HH:mm:ss z yyyy");

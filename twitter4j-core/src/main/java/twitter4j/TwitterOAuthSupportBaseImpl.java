@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import twitter4j.internal.http.XAuthAuthorization;
  */
 class TwitterOAuthSupportBaseImpl extends TwitterOAuthSupportBase {
 
+    private static final long serialVersionUID = 2166151122833272805L;
     protected transient String screenName = null;
     protected transient int id = 0;
 
@@ -151,8 +152,6 @@ class TwitterOAuthSupportBaseImpl extends TwitterOAuthSupportBase {
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated Use {@link TwitterFactory#getInstance(twitter4j.http.Authorization)} instead
      */
     public synchronized void setOAuthAccessToken(AccessToken accessToken) {
         getOAuth().setOAuthAccessToken(accessToken);
@@ -160,8 +159,6 @@ class TwitterOAuthSupportBaseImpl extends TwitterOAuthSupportBase {
 
     /**
      * {@inheritDoc}
-     *
-     * @deprecated Use {@link TwitterFactory#getInstance(twitter4j.http.Authorization)} instead
      */
     public synchronized AccessToken getOAuthAccessToken(String token, String tokenSecret) throws TwitterException {
         return getOAuth().getOAuthAccessToken(new RequestToken(token, tokenSecret));

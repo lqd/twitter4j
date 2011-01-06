@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j.api;
 
+import twitter4j.Friendship;
 import twitter4j.IDs;
 import twitter4j.Relationship;
+import twitter4j.ResponseList;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -44,7 +46,7 @@ public interface FriendshipMethods {
 	 * @return the befriended user
 	 * @throws twitter4j.TwitterException when Twitter service or network is unavailable
 	 * @since Twitter4J 2.0.1
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	User createFriendship(String screenName)
 			throws TwitterException;
@@ -58,7 +60,7 @@ public interface FriendshipMethods {
 	 * @return the befriended user
 	 * @throws TwitterException when Twitter service or network is unavailable
 	 * @since Twitter4J 2.1.0
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	User createFriendship(int userId)
 			throws TwitterException;
@@ -72,7 +74,7 @@ public interface FriendshipMethods {
 	 * @return the befriended user
 	 * @throws TwitterException when Twitter service or network is unavailable
 	 * @since Twitter4J 2.0.2
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	User createFriendship(String screenName, boolean follow)
 			throws TwitterException;
@@ -87,7 +89,7 @@ public interface FriendshipMethods {
 	 * @return the befriended user
 	 * @throws TwitterException when Twitter service or network is unavailable
 	 * @since Twitter4J 2.1.0
-     * @see <a href="http://dev.twitter.com/doc/post/friendships/create/:id">POST friendships/create/:id | dev.twitter.com</a>
+     * @see <a href="http://dev.twitter.com/doc/post/friendships/create">POST friendships/create | dev.twitter.com</a>
 	 */
 	User createFriendship(int userId, boolean follow)
 			throws TwitterException;
@@ -185,4 +187,64 @@ public interface FriendshipMethods {
      * @see <a href="http://dev.twitter.com/doc/get/friendships/outgoing">GET friendships/outgoing | dev.twitter.com</a>
      */
     IDs getOutgoingFriendships(long cursor) throws TwitterException;
+
+    /**
+     * Returns the relationship of the authenticating user to the specified users.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/lookup.json
+     * @param screenNames array of the screen names to lookup
+     * @return list of Relationships
+     *
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    ResponseList<Friendship> lookupFriendships(String[] screenNames)
+            throws TwitterException;
+
+    /**
+     * Returns the relationship of the authenticating user to the specified users.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/lookup.json
+     * @param ids array of the ids to lookup
+     * @return list of Relationships
+     *
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    ResponseList<Friendship> lookupFriendships(int[] ids)
+            throws TwitterException;
+
+    /**
+     * Allows you to enable or disable retweets and device notifications from the specified user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/update.json
+     * @param screenName screen name to update
+     * @param enableDeviceNotification set true to enable device notification
+     * @param retweets set true to enable retweets
+     * @return Relationship
+     *
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    Relationship updateFriendship(String screenName, boolean enableDeviceNotification
+            , boolean retweets) throws TwitterException;
+
+    /**
+     * Allows you to enable or disable retweets and device notifications from the specified user.
+     * <br>This method has not been finalized and the interface is subject to change in incompatible ways.
+     * <br>This method calls http://api.twitter.com/1/friendships/update.json
+     * @param userId user id to update
+     * @param enableDeviceNotification set true to enable device notification
+     * @param retweets set true to enable retweets
+     * @return Relationship
+     *
+     * @throws TwitterException when Twitter service or network is unavailable
+     * @since Twitter4J 2.1.9
+     * @see <a href="http://groups.google.com/group/twitter-api-announce/msg/34909da7c399169e">#newtwitter and the API - Twitter API Announcements | Google Group</a>
+     */
+    Relationship updateFriendship(int userId, boolean enableDeviceNotification
+            , boolean retweets) throws TwitterException;
 }

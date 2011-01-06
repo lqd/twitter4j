@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,14 @@ public interface TwitterListener {
      * @since Twitter4J 2.0.10
      */
     void gotRetweetsOfMe(ResponseList<Status> statuses);
-
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void gotRetweetedByUser(ResponseList<Status> statuses);
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void gotRetweetedToUser(ResponseList<Status> statuses);
 
     /*Status Methods*/
     /**
@@ -142,6 +149,16 @@ public interface TwitterListener {
      */
     void gotUserSuggestions(ResponseList<User> users);
 
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void gotMemberSuggestions(ResponseList<User> users);
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    void gotProfileImage(ProfileImage image);
+
 
     void gotFriendsStatuses(PagableResponseList<User> users);
 
@@ -180,6 +197,10 @@ public interface TwitterListener {
      * @since Twitter4J 2.1.0
      */
     void gotUserListSubscriptions(PagableResponseList<UserList> userLists);
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void gotAllUserLists(ResponseList<UserList> lists);
 
     /*List Members Methods*/
     /**
@@ -190,6 +211,10 @@ public interface TwitterListener {
      * @since Twitter4J 2.1.0
      */
     void addedUserListMember(UserList userList);
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    void addedUserListMembers(UserList userList);
     /**
      * @since Twitter4J 2.1.0
      */
@@ -224,6 +249,10 @@ public interface TwitterListener {
 
     void sentDirectMessage(DirectMessage message);
 
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void gotDirectMessage(DirectMessage message);
     /**
      * @since Twitter4J 2.0.1
      */
@@ -264,15 +293,35 @@ public interface TwitterListener {
 
     void gotFollowersIDs(IDs ids);
 
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void lookedUpFriendships(ResponseList<Friendship> friendships);
+
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    void updatedFriendship(Relationship relationship);
+
     /*Account Methods*/
-    
+
     void verifiedCredentials(User user);
-    
+
     void gotRateLimitStatus(RateLimitStatus rateLimitStatus);
 
-    void updatedDeliveryDevice(User user);
-
     void updatedProfileColors(User user);
+
+    /**
+     * @since Twitter4J 2.1.9
+     * @param totals account totals
+     */
+    void gotAccountTotals(AccountTotals totals);
+
+    /**
+     * @since Twitter4J 2.1.9
+     * @param settings account settings
+     */
+    void gotAccountSettings(AccountSettings settings);
 
     /**
      * @since Twitter4J 2.1.0
@@ -322,7 +371,7 @@ public interface TwitterListener {
      * @since Twitter4J 2.0.4
      */
     void gotExistsBlock(boolean blockExists);
-    
+
     /**
      * @since Twitter4J 2.0.4
      */
@@ -356,9 +405,28 @@ public interface TwitterListener {
      */
     void gotLocationTrends(Trends trends);
     /*Geo Methods*/
+    void searchedPlaces(ResponseList<Place> places);
+    void gotSimilarPlaces(SimilarPlaces places);
     void gotNearByPlaces(ResponseList<Place> places);
     void gotReverseGeoCode(ResponseList<Place> places);
     void gotGeoDetails(Place place);
+    void createdPlace(Place place);
+
+    /* Legal Resources*/
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    void gotTermsOfService(String tof);
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    void gotPrivacyPolicy(String privacyPolicy);
+
+    /* #newtwitter Methods */
+
+    void gotRelatedResults(RelatedResults relatedResults);
 
     /*Help Methods*/
     void tested(boolean test);
@@ -385,6 +453,8 @@ public interface TwitterListener {
     TwitterMethod RETWEETED_BY_ME = TwitterMethod.RETWEETED_BY_ME;
     TwitterMethod RETWEETED_TO_ME = TwitterMethod.RETWEETED_TO_ME;
     TwitterMethod RETWEETS_OF_ME = TwitterMethod.RETWEETS_OF_ME;
+    TwitterMethod RETWEETED_BY_USER = TwitterMethod.RETWEETED_BY_USER;
+    TwitterMethod RETWEETED_TO_USER = TwitterMethod.RETWEETED_TO_USER;
 
     /*Status Methods*/
     TwitterMethod SHOW_STATUS = TwitterMethod.SHOW_STATUS;
@@ -402,6 +472,8 @@ public interface TwitterListener {
     TwitterMethod SEARCH_USERS = TwitterMethod.SEARCH_USERS;
     TwitterMethod SUGGESTED_USER_CATEGORIES = TwitterMethod.SUGGESTED_USER_CATEGORIES;
     TwitterMethod USER_SUGGESTIONS = TwitterMethod.USER_SUGGESTIONS;
+    TwitterMethod MEMBER_SUGGESTIONS = TwitterMethod.MEMBER_SUGGESTIONS;
+    TwitterMethod PROFILE_IMAGE = TwitterMethod.PROFILE_IMAGE;
     TwitterMethod FRIENDS_STATUSES = TwitterMethod.FRIENDS_STATUSES;
     TwitterMethod FOLLOWERS_STATUSES = TwitterMethod.FOLLOWERS_STATUSES;
 
@@ -414,10 +486,12 @@ public interface TwitterListener {
     TwitterMethod USER_LIST_STATUSES = TwitterMethod.USER_LIST_STATUSES;
     TwitterMethod USER_LIST_MEMBERSHIPS = TwitterMethod.USER_LIST_MEMBERSHIPS;
     TwitterMethod USER_LIST_SUBSCRIPTIONS = TwitterMethod.USER_LIST_SUBSCRIPTIONS;
+    TwitterMethod ALL_USER_LISTS = TwitterMethod.ALL_USER_LISTS;
 
     /*List Members Methods*/
     TwitterMethod LIST_MEMBERS = TwitterMethod.LIST_MEMBERS;
     TwitterMethod ADD_LIST_MEMBER = TwitterMethod.ADD_LIST_MEMBER;
+    TwitterMethod ADD_LIST_MEMBERS = TwitterMethod.ADD_LIST_MEMBERS;
     TwitterMethod DELETE_LIST_MEMBER = TwitterMethod.DELETE_LIST_MEMBER;
     TwitterMethod CHECK_LIST_MEMBERSHIP = TwitterMethod.CHECK_LIST_MEMBERSHIP;
 
@@ -431,7 +505,7 @@ public interface TwitterListener {
     TwitterMethod DIRECT_MESSAGES = TwitterMethod.DIRECT_MESSAGES;
     TwitterMethod SENT_DIRECT_MESSAGES = TwitterMethod.SENT_DIRECT_MESSAGES;
     TwitterMethod SEND_DIRECT_MESSAGE = TwitterMethod.SEND_DIRECT_MESSAGE;
-    TwitterMethod DESTROY_DIRECT_MESSAGES = TwitterMethod.DESTROY_DIRECT_MESSAGES;
+    TwitterMethod DESTROY_DIRECT_MESSAGE = TwitterMethod.DESTROY_DIRECT_MESSAGE;
 
     /*Friendship Methods*/
     TwitterMethod CREATE_FRIENDSHIP = TwitterMethod.CREATE_FRIENDSHIP;
@@ -440,6 +514,8 @@ public interface TwitterListener {
     TwitterMethod SHOW_FRIENDSHIP = TwitterMethod.SHOW_FRIENDSHIP;
     TwitterMethod INCOMING_FRIENDSHIP = TwitterMethod.INCOMING_FRIENDSHIPS;
     TwitterMethod OUTGOING_FRIENDSHIPS = TwitterMethod.OUTGOING_FRIENDSHIPS;
+    TwitterMethod LOOKUP_FRIENDSHIPS = TwitterMethod.LOOKUP_FRIENDSHIPS;
+    TwitterMethod UPDATE_FRIENDSHIP = TwitterMethod.UPDATE_FRIENDSHIP;
 
     /*Social Graph Methods*/
     TwitterMethod FRIENDS_IDS = TwitterMethod.FRIENDS_IDS;
@@ -448,11 +524,12 @@ public interface TwitterListener {
     /*Account Methods*/
     TwitterMethod VERIFY_CREDENTIALS = TwitterMethod.VERIFY_CREDENTIALS;
     TwitterMethod RATE_LIMIT_STATUS = TwitterMethod.RATE_LIMIT_STATUS;
-    TwitterMethod UPDATE_DELIVERY_DEVICE = TwitterMethod.UPDATE_DELIVERY_DEVICE;
     TwitterMethod UPDATE_PROFILE_COLORS = TwitterMethod.UPDATE_PROFILE_COLORS;
     TwitterMethod UPDATE_PROFILE_IMAGE = TwitterMethod.UPDATE_PROFILE_IMAGE;
     TwitterMethod UPDATE_PROFILE_BACKGROUND_IMAGE = TwitterMethod.UPDATE_PROFILE_BACKGROUND_IMAGE;
     TwitterMethod UPDATE_PROFILE = TwitterMethod.UPDATE_PROFILE;
+    TwitterMethod ACCOUNT_TOTALS = TwitterMethod.ACCOUNT_TOTALS;
+    TwitterMethod ACCOUNT_SETTINGS = TwitterMethod.ACCOUNT_SETTINGS;
 
     /*Favorite Methods*/
     TwitterMethod FAVORITES = TwitterMethod.FAVORITES;
@@ -484,9 +561,19 @@ public interface TwitterListener {
     TwitterMethod LOCATION_TRENDS =  TwitterMethod.LOCATION_TRENDS;
 
     /*Geo Methods*/
+    TwitterMethod SEARCH_PLACES = TwitterMethod.SEARCH_PLACES;
+    TwitterMethod SIMILAR_PLACES = TwitterMethod.SIMILAR_PLACES;
     TwitterMethod NEAR_BY_PLACES = TwitterMethod.NEAR_BY_PLACES;
     TwitterMethod REVERSE_GEO_CODE = TwitterMethod.REVERSE_GEO_CODE;
     TwitterMethod GEO_DETAILS = TwitterMethod.GEO_DETAILS;
+    TwitterMethod CREATE_PLACE = TwitterMethod.CREATE_PLACE;
+
+    /* Regal Resources */
+    TwitterMethod TERMS_OF_SERVICE = TwitterMethod.TERMS_OF_SERVICE;
+    TwitterMethod PRIVACY_POLICY = TwitterMethod.PRIVACY_POLICY;
+
+    /* #newtwitter Methods */
+    TwitterMethod RELATED_RESULT = TwitterMethod.RELATED_RESULTS;
 
     /*Help Methods*/
     TwitterMethod TEST = TwitterMethod.TEST;

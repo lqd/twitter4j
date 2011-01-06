@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2007-2010, Yusuke Yamamoto
+Copyright (c) 2007-2011, Yusuke Yamamoto
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -96,6 +96,18 @@ public class TwitterAdapter implements TwitterListener {
     public void gotRetweetsOfMe(ResponseList<Status> statuses) {
     }
 
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotRetweetedByUser(ResponseList<Status> statuses) {
+    }
+
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotRetweetedToUser(ResponseList<Status> statuses) {
+    }
+
     /*Status Methods*/
     /**
      * @since Twitter4J 2.0.1
@@ -155,6 +167,18 @@ public class TwitterAdapter implements TwitterListener {
     public void gotUserSuggestions(ResponseList<User> users) {
     }
 
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotMemberSuggestions(ResponseList<User> users) {
+    }
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void gotProfileImage(ProfileImage image) {
+    }
+
     public void gotFriendsStatuses(PagableResponseList<User> users){
     }
     public void gotFollowersStatuses(PagableResponseList<User> users){
@@ -192,6 +216,10 @@ public class TwitterAdapter implements TwitterListener {
      * @since Twitter4J 2.1.0
      */
     public void gotUserListSubscriptions(PagableResponseList<UserList> userLists) {}
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotAllUserLists(ResponseList<UserList> lists) {}
 
     /*List Members Methods*/
     /**
@@ -202,6 +230,12 @@ public class TwitterAdapter implements TwitterListener {
      * @since Twitter4J 2.1.0
      */
     public void addedUserListMember(UserList userList) {}
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void addedUserListMembers(UserList userList) {};
+
     /**
      * @since Twitter4J 2.1.0
      */
@@ -241,7 +275,11 @@ public class TwitterAdapter implements TwitterListener {
      */
     public void destroyedDirectMessage(DirectMessage message){
     }
-
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotDirectMessage(DirectMessage message){
+    }
     /*Friendship Methods*/
     /**
      * @since Twitter4J 2.0.1
@@ -273,8 +311,16 @@ public class TwitterAdapter implements TwitterListener {
      */
     public void gotOutgoingFriendships(IDs ids) {
     }
-
-
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void lookedUpFriendships(ResponseList<Friendship> friendships) {
+    }
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void updatedFriendship(Relationship relationship) {
+    }
     /*Social Graph Methods*/
     public void gotFriendsIDs(IDs ids){
     }
@@ -286,14 +332,21 @@ public class TwitterAdapter implements TwitterListener {
 
 	public void verifiedCredentials(User user) {
 	}
-	
+
     public void gotRateLimitStatus(RateLimitStatus status) {
     }
 
-    public void updatedDeliveryDevice(User user) {
-    }
-
     public void updatedProfileColors(User user) {
+    }
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotAccountTotals(AccountTotals totals) {
+    }
+    /**
+     * @since Twitter4J 2.1.9
+     */
+    public void gotAccountSettings(AccountSettings settings) {
     }
     /**
      * @since Twitter4J 2.1.0
@@ -387,11 +440,51 @@ public class TwitterAdapter implements TwitterListener {
     }
 
     /*Geo Methods*/
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void searchedPlaces(ResponseList<Place> places) {
+    }
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void gotSimilarPlaces(SimilarPlaces places) {
+    }
+
     public void gotNearByPlaces(ResponseList<Place> places){
     }
     public void gotReverseGeoCode(ResponseList<Place> places){
     }
     public void gotGeoDetails(Place place) {
+    }
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void createdPlace(Place place) {
+    }
+
+    /* Legal Resources*/
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void gotTermsOfService(String tof) {
+
+    }
+
+    /**
+     * @since Twitter4J 2.1.7
+     */
+    public void gotPrivacyPolicy(String privacyPolicy) {
+
+    }
+
+    /* #newtwitter Methods */
+
+    /**
+     *
+     */
+    public void gotRelatedResults(RelatedResults relatedResults) {
     }
 
     /*Help Methods*/
