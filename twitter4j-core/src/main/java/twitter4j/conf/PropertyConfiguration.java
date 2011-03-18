@@ -1,31 +1,22 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j.conf;
 
+import twitter4j.internal.util.T4JInternalStringUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,20 +26,19 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Set;
 
-import twitter4j.internal.util.StringUtil;
-
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public final class PropertyConfiguration extends ConfigurationBase implements java.io.Serializable {
 
     public static final String DEBUG = "debug";
-    public static final String SOURCE = "source";
     public static final String HTTP_USER_AGENT = "http.userAgent";
     public static final String USER = "user";
     public static final String PASSWORD = "password";
 
     public static final String HTTP_USE_SSL = "http.useSSL";
+    public static final String HTTP_PRETTY_DEBUG = "http.prettyDebug";
+    public static final String HTTP_GZIP = "http.gzip";
     public static final String HTTP_PROXY_HOST = "http.proxyHost";
     public static final String HTTP_PROXY_HOST_FALLBACK = "http.proxyHost";
     public static final String HTTP_PROXY_USER = "http.proxyUser";
@@ -85,31 +75,33 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
 
 
     public static final String ASYNC_NUM_THREADS = "async.numThreads";
-    public static final String ASYNC_DISPATCHER_IMPL = "async.dispatherImpl";
+    public static final String ASYNC_DISPATCHER_IMPL = "async.dispatcherImpl";
     public static final String INCLUDE_RTS = "includeRTs";
     public static final String INCLUDE_ENTITIES = "includeEntities";
+    public static final String JSON_STORE_ENABLED = "jsonStoreEnabled";
     public static final String STREAM_USER_REPLIES_ALL = "stream.user.repliesAll";
 
-    public static final String MEDIA_PROVIDER = "media.provier";
-    public static final String MEDIA_PROVIDER_API_KEY = "media.provierAPIKey";
+    public static final String MEDIA_PROVIDER = "media.provider";
+    public static final String MEDIA_PROVIDER_API_KEY = "media.providerAPIKey";
+    public static final String MEDIA_PROVIDER_PARAMETERS = "media.providerParameters";
 
     // hidden portion
     public static final String CLIENT_VERSION = "clientVersion";
     public static final String CLIENT_URL = "clientURL";
     private static final long serialVersionUID = 6458764415636588373L;
 
-    public PropertyConfiguration(InputStream is){
+    public PropertyConfiguration(InputStream is) {
         super();
         Properties props = new Properties();
         loadProperties(props, is);
         setFieldsWithTreePath(props, "/");
     }
 
-    public PropertyConfiguration(Properties props){
+    public PropertyConfiguration(Properties props) {
         this(props, "/");
     }
 
-    public PropertyConfiguration(Properties props, String treePath){
+    public PropertyConfiguration(Properties props, String treePath) {
         super();
         setFieldsWithTreePath(props, treePath);
     }
@@ -119,9 +111,9 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
         Properties props;
         // load from system properties
         try {
-            props = (Properties)System.getProperties().clone();
+            props = (Properties) System.getProperties().clone();
             normalize(props);
-        }catch(SecurityException ignore){
+        } catch (SecurityException ignore) {
             // Unsigned applets are not allowed to access System properties
             props = new Properties();
         }
@@ -153,7 +145,7 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
             File file = new File(path);
             if (file.exists() && file.isFile()) {
                 fis = new FileInputStream(file);
-                props.load(new FileInputStream(file));
+                props.load(fis);
                 normalize(props);
                 return true;
             }
@@ -208,7 +200,7 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
      */
     private void setFieldsWithTreePath(Properties props, String treePath) {
         setFieldsWithPrefix(props, "");
-        String[] splitArray = StringUtil.split(treePath, "/");
+        String[] splitArray = T4JInternalStringUtil.split(treePath, "/");
         String prefix = null;
         for (String split : splitArray) {
             if (!"".equals(split)) {
@@ -227,10 +219,6 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
             setDebug(getBoolean(props, prefix, DEBUG));
         }
 
-        if (notNull(props, prefix, SOURCE)) {
-            setSource(getString(props, prefix, SOURCE));
-        }
-
         if (notNull(props, prefix, USER)) {
             setUser(getString(props, prefix, USER));
         }
@@ -243,6 +231,12 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
                 notNull(props, prefix, PASSWORD)) {
             // use SSL with Basic Auth
             setUseSSL(true);
+        }
+        if (notNull(props, prefix, HTTP_PRETTY_DEBUG)) {
+            setPrettyDebugEnabled(getBoolean(props, prefix, HTTP_PRETTY_DEBUG));
+        }
+        if (notNull(props, prefix, HTTP_GZIP)) {
+            setGZIPEnabled(getBoolean(props, prefix, HTTP_GZIP));
         }
         if (notNull(props, prefix, HTTP_PROXY_HOST)) {
             setHttpProxyHost(getString(props, prefix, HTTP_PROXY_HOST));
@@ -276,10 +270,10 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
             setHttpRetryIntervalSeconds(getIntProperty(props, prefix, HTTP_RETRY_INTERVAL_SECS));
         }
         if (notNull(props, prefix, HTTP_MAX_TOTAL_CONNECTIONS)) {
-          setHttpMaxTotalConnections(getIntProperty(props, prefix, HTTP_MAX_TOTAL_CONNECTIONS));
+            setHttpMaxTotalConnections(getIntProperty(props, prefix, HTTP_MAX_TOTAL_CONNECTIONS));
         }
         if (notNull(props, prefix, HTTP_DEFAULT_MAX_PER_ROUTE)) {
-          setHttpDefaultMaxPerRoute(getIntProperty(props, prefix, HTTP_DEFAULT_MAX_PER_ROUTE));
+            setHttpDefaultMaxPerRoute(getIntProperty(props, prefix, HTTP_DEFAULT_MAX_PER_ROUTE));
         }
         if (notNull(props, prefix, OAUTH_CONSUMER_KEY)) {
             setOAuthConsumerKey(getString(props, prefix, OAUTH_CONSUMER_KEY));
@@ -297,7 +291,7 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
             setAsyncNumThreads(getIntProperty(props, prefix, ASYNC_NUM_THREADS));
         }
         if (notNull(props, prefix, ASYNC_DISPATCHER_IMPL)) {
-            setAsyncNumThreads(getIntProperty(props, prefix, ASYNC_DISPATCHER_IMPL));
+            setDispatcherImpl(getString(props, prefix, ASYNC_DISPATCHER_IMPL));
         }
         if (notNull(props, prefix, CLIENT_VERSION)) {
             setClientVersion(getString(props, prefix, CLIENT_VERSION));
@@ -348,6 +342,9 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
         if (notNull(props, prefix, INCLUDE_ENTITIES)) {
             setIncludeEntitiesEnbled(getBoolean(props, prefix, INCLUDE_ENTITIES));
         }
+        if (notNull(props, prefix, JSON_STORE_ENABLED)) {
+            setJSONStoreEnabled(getBoolean(props, prefix, JSON_STORE_ENABLED));
+        }
         if (notNull(props, prefix, STREAM_USER_REPLIES_ALL)) {
             setUserStreamRepliesAllEnabled(getBoolean(props, prefix, STREAM_USER_REPLIES_ALL));
         }
@@ -356,6 +353,15 @@ public final class PropertyConfiguration extends ConfigurationBase implements ja
         }
         if (notNull(props, prefix, MEDIA_PROVIDER_API_KEY)) {
             setMediaProviderAPIKey(getString(props, prefix, MEDIA_PROVIDER_API_KEY));
+        }
+        if (notNull(props, prefix, MEDIA_PROVIDER_PARAMETERS)) {
+            String[] propsAry = T4JInternalStringUtil.split(getString(props, prefix, MEDIA_PROVIDER_PARAMETERS), "&");
+            Properties p = new Properties();
+            for (String str : propsAry) {
+                String[] parameter = T4JInternalStringUtil.split(str, "=");
+                p.setProperty(parameter[0], parameter[1]);
+            }
+            setMediaProviderParameters(p);
         }
     }
 

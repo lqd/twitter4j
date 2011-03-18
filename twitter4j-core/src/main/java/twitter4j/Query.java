@@ -1,29 +1,19 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
 
 import java.util.ArrayList;
@@ -35,9 +25,10 @@ import twitter4j.internal.http.HttpParameter;
  * A data class represents search query.<br>
  * An instance of this class is NOT thread safe.<br>
  * Instances can be shared across threads, but should not be mutated while a search is ongoing.
+ *
+ * @author Yusuke Yamamoto - yusuke at mac.com
  * @see <a href="http://dev.twitter.com/doc/get/search">GET search | dev.twitter.com</a>
  * @see <a href="http://search.twitter.com/operators">Twitter API / Search Operators</a>
- * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public final class Query implements java.io.Serializable {
     private String query = null;
@@ -53,14 +44,16 @@ public final class Query implements java.io.Serializable {
     private String resultType = null;
     private static final long serialVersionUID = -8108425822233599808L;
 
-    public Query(){
+    public Query() {
     }
-    public Query(String query){
+
+    public Query(String query) {
         this.query = query;
     }
 
     /**
      * Returns the specified query
+     *
      * @return query
      */
     public String getQuery() {
@@ -69,6 +62,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Sets the query string
+     *
      * @param query the query string
      * @see <a href="http://dev.twitter.com/doc/get/search">GET search | dev.twitter.com</a>
      * @see <a href="http://search.twitter.com/operators">Twitter API / Search Operators</a>
@@ -79,6 +73,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Sets the query string
+     *
      * @param query the query string
      * @return the instance
      * @see <a href="http://dev.twitter.com/doc/get/search">GET search | dev.twitter.com</a>
@@ -92,6 +87,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns the lang
+     *
      * @return lang
      */
     public String getLang() {
@@ -100,6 +96,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * restricts tweets to the given language, given by an <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1 code</a>
+     *
      * @param lang an <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1 code</a>
      */
     public void setLang(String lang) {
@@ -108,6 +105,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * restricts tweets to the given language, given by an <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1 code</a>
+     *
      * @param lang an <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1 code</a>
      * @return the instance
      * @since Twitter4J 2.1.0
@@ -119,6 +117,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns the language of the query you are sending (only ja is currently effective). This is intended for language-specific clients and the default should work in the majority of cases.
+     *
      * @return locale
      * @since Twitter4J 2.1.1
      */
@@ -128,6 +127,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Specify the language of the query you are sending (only ja is currently effective). This is intended for language-specific clients and the default should work in the majority of cases.
+     *
      * @param locale the locale
      * @since Twitter4J 2.1.1
      */
@@ -137,9 +137,10 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Specify the language of the query you are sending (only ja is currently effective). This is intended for language-specific clients and the default should work in the majority of cases.
+     *
      * @param locale the locale
-     * @since Twitter4J 2.1.1
      * @return the instance
+     * @since Twitter4J 2.1.1
      */
     public Query locale(String locale) {
         setLocale(locale);
@@ -148,6 +149,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns tweets with status ids less than the given id.
+     *
      * @return maxId
      * @since Twitter4J 2.1.1
      */
@@ -157,6 +159,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with status ids less than the given id.
+     *
      * @param maxId maxId
      * @since Twitter4J 2.1.1
      */
@@ -166,6 +169,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with status ids less than the given id.
+     *
      * @param maxId maxId
      * @return this instance
      * @since Twitter4J 2.1.1
@@ -177,6 +181,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns the number of tweets to return per page, up to a max of 100
+     *
      * @return rpp
      */
     public int getRpp() {
@@ -185,6 +190,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * sets the number of tweets to return per page, up to a max of 100
+     *
      * @param rpp the number of tweets to return per page
      */
     public void setRpp(int rpp) {
@@ -193,6 +199,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * sets the number of tweets to return per page, up to a max of 100
+     *
      * @param rpp the number of tweets to return per page
      * @return the instance
      * @since Twitter4J 2.1.0
@@ -204,6 +211,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns the page number (starting at 1) to return, up to a max of roughly 1500 results
+     *
      * @return the page number (starting at 1) to return
      */
     public int getPage() {
@@ -212,6 +220,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * sets the page number (starting at 1) to return, up to a max of roughly 1500 results
+     *
      * @param page the page number (starting at 1) to return
      */
     public void setPage(int page) {
@@ -220,6 +229,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * sets the page number (starting at 1) to return, up to a max of roughly 1500 results
+     *
      * @param page the page number (starting at 1) to return
      * @return the instance
      * @since Twitter4J 2.1.0
@@ -231,6 +241,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns tweets with since the given date.  Date should be formatted as YYYY-MM-DD
+     *
      * @return since
      * @since Twitter4J 2.1.1
      */
@@ -240,6 +251,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with since the given date.  Date should be formatted as YYYY-MM-DD
+     *
      * @param since since
      * @since Twitter4J 2.1.1
      */
@@ -249,6 +261,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with since the given date.  Date should be formatted as YYYY-MM-DD
+     *
      * @param since since
      * @return since
      * @since Twitter4J 2.1.1
@@ -260,6 +273,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * returns sinceId
+     *
      * @return sinceId
      */
     public long getSinceId() {
@@ -268,6 +282,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * returns tweets with status ids greater than the given id.
+     *
      * @param sinceId returns tweets with status ids greater than the given id
      */
     public void setSinceId(long sinceId) {
@@ -276,6 +291,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * returns tweets with status ids greater than the given id.
+     *
      * @param sinceId returns tweets with status ids greater than the given id
      * @return the instance
      * @since Twitter4J 2.1.0
@@ -287,6 +303,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns the specified geocode
+     *
      * @return geocode
      */
     public String getGeocode() {
@@ -298,9 +315,10 @@ public final class Query implements java.io.Serializable {
 
     /**
      * returns tweets by users located within a given radius of the given latitude/longitude, where the user's location is taken from their Twitter profile
+     *
      * @param location geo location
-     * @param radius radius
-     * @param unit Query.MILES or Query.KILOMETERS
+     * @param radius   radius
+     * @param unit     Query.MILES or Query.KILOMETERS
      */
     public void setGeoCode(GeoLocation location, double radius
             , String unit) {
@@ -309,9 +327,10 @@ public final class Query implements java.io.Serializable {
 
     /**
      * returns tweets by users located within a given radius of the given latitude/longitude, where the user's location is taken from their Twitter profile
+     *
      * @param location geo location
-     * @param radius radius
-     * @param unit Query.MILES or Query.KILOMETERS
+     * @param radius   radius
+     * @param unit     Query.MILES or Query.KILOMETERS
      * @return the instance
      * @since Twitter4J 2.1.0
      */
@@ -323,6 +342,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Returns until
+     *
      * @return until
      * @since Twitter4J 2.1.1
      */
@@ -332,6 +352,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with generated before the given date.  Date should be formatted as YYYY-MM-DD
+     *
      * @param until until
      * @since Twitter4J 2.1.1
      */
@@ -341,6 +362,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets with generated before the given date.  Date should be formatted as YYYY-MM-DD
+     *
      * @param until until
      * @return the instance
      * @since Twitter4J 2.1.1
@@ -358,9 +380,10 @@ public final class Query implements java.io.Serializable {
     public final static String MIXED = "mixed";
     public final static String POPULAR = "popular";
     public final static String RECENT = "recent";
-    
+
     /**
      * Returns resultType
+     *
      * @return the resultType
      * @since Twitter4J 2.1.3
      */
@@ -370,6 +393,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * Default value is Query.MIXED if parameter not specified
+     *
      * @param resultType Query.MIXED or Query.POPULAR or Query.RECENT
      * @since Twitter4J 2.1.3
      */
@@ -379,6 +403,7 @@ public final class Query implements java.io.Serializable {
 
     /**
      * If specified, returns tweets included popular or real time or both in the responce
+     *
      * @param resultType resultType
      * @return the instance
      * @since Twitter4J 2.1.3
@@ -388,19 +413,19 @@ public final class Query implements java.io.Serializable {
         return this;
     }
 
-    /*package*/ HttpParameter[] asHttpParameterArray(){
+    /*package*/ HttpParameter[] asHttpParameterArray() {
         ArrayList<HttpParameter> params = new ArrayList<HttpParameter>();
         appendParameter("q", query, params);
         appendParameter("lang", lang, params);
         appendParameter("locale", locale, params);
         appendParameter("max_id", maxId, params);
-        appendParameter("rpp",rpp , params);
+        appendParameter("rpp", rpp, params);
         appendParameter("page", page, params);
-        appendParameter("since",since , params);
-        appendParameter("since_id",sinceId , params);
+        appendParameter("since", since, params);
+        appendParameter("since_id", sinceId, params);
         appendParameter("geocode", geocode, params);
         appendParameter("until", until, params);
-        appendParameter("resultType", resultType, params);
+        appendParameter("result_type", resultType, params);
         HttpParameter[] paramArray = new HttpParameter[params.size()];
         return params.toArray(paramArray);
     }

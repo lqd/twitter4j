@@ -1,48 +1,37 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j.conf;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import twitter4j.Version;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.PropertyConfiguration;
-import twitter4j.http.RequestToken;
-import twitter4j.internal.util.StringUtil;
+import twitter4j.auth.RequestToken;
+import twitter4j.internal.util.T4JInternalStringUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public class ConfigurationTest  extends TestCase {
+public class ConfigurationTest extends TestCase {
 
     public ConfigurationTest(String name) {
         super(name);
@@ -56,10 +45,12 @@ public class ConfigurationTest  extends TestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
     }
+
     public void testGetInstance() throws Exception {
         Configuration conf = ConfigurationContext.getInstance();
         assertNotNull(conf);
     }
+
     public void testFixURL() throws Exception {
         assertEquals("http://www.bea.com", ConfigurationBase.fixURL(false, "http://www.bea.com"));
         assertEquals("http://www.bea.com", ConfigurationBase.fixURL(false, "https://www.bea.com"));
@@ -70,12 +61,12 @@ public class ConfigurationTest  extends TestCase {
     }
 
     public void testSprit() throws Exception {
-       String original = "foo/bar";
-        String[] split = StringUtil.split(original,"/");
-        assertEquals("foo",split[0]);
-        assertEquals("bar",split[1]);
-        assertEquals(2,split.length);
-      }
+        String original = "foo/bar";
+        String[] split = T4JInternalStringUtil.split(original, "/");
+        assertEquals("foo", split[0]);
+        assertEquals("bar", split[1]);
+        assertEquals(2, split.length);
+    }
 
     public void testConfiguration() throws Exception {
         ConfigurationBase conf = new PropertyConfiguration();
@@ -109,21 +100,6 @@ public class ConfigurationTest  extends TestCase {
         conf.setPassword(test);
         assertEquals(test, conf.getPassword());
         System.getProperties().remove("twitter4j.password");
-
-
-        System.getProperties().remove("twitter4j.source");
-        conf = new PropertyConfiguration();
-        assertEquals("Twitter4J", conf.getSource());
-
-        conf.setSource(test);
-        assertEquals(test, conf.getSource());
-        System.setProperty("twitter4j.source", override);
-        conf = new PropertyConfiguration();
-        assertEquals(override, conf.getSource());
-        conf.setSource(test);
-        assertEquals(test, conf.getSource());
-        System.getProperties().remove("twitter4j.source");
-
 
         System.getProperties().remove("twitter4j.clientVersion");
         conf = new PropertyConfiguration();
@@ -249,13 +225,13 @@ public class ConfigurationTest  extends TestCase {
 
         // disable SSL
         writeFile("./twitter4j.properties", "twitter4j.restBaseURL=http://somewhere.com/"
-        + "\n" + "twitter4j.http.useSSL=false");
+                + "\n" + "twitter4j.http.useSSL=false");
         conf = new PropertyConfiguration("/");
         assertEquals("http://somewhere.com/", conf.getRestBaseURL());
 
         // explicitly enabling SSL
         writeFile("./twitter4j.properties", "twitter4j.restBaseURL=http://somewhere.com/"
-        + "\n" + "twitter4j.http.useSSL=true");
+                + "\n" + "twitter4j.http.useSSL=true");
         conf = new PropertyConfiguration("/");
         // useSSL doesn't take effect if restBaseURL is explicitly specified.
         assertEquals("http://somewhere.com/", conf.getRestBaseURL());
@@ -287,7 +263,7 @@ public class ConfigurationTest  extends TestCase {
     public void testTreeConfiguration() throws Exception {
         Configuration conf;
         writeFile("./twitter4j.properties", "twitter4j.restBaseURL=http://somewhere.com/"
-        + "\n" + "twitter4j.http.useSSL=false");
+                + "\n" + "twitter4j.http.useSSL=false");
         conf = new PropertyConfiguration("/");
         assertEquals("http://somewhere.com/", conf.getRestBaseURL());
         writeFile("./twitter4j.properties", "twitter4j.restBaseURL=http://somewhere.com/"
@@ -341,6 +317,7 @@ public class ConfigurationTest  extends TestCase {
     }
 
     public void testConfigurationBuilder() throws Exception {
+        deleteFile("./twitter4j.properties");
         ConfigurationBuilder builder;
         Configuration conf;
         builder = new ConfigurationBuilder();
@@ -383,7 +360,7 @@ public class ConfigurationTest  extends TestCase {
         assertTrue(0 == conf.getOAuthAccessTokenURL().indexOf("http://"));
         assertTrue(0 == conf.getOAuthRequestTokenURL().indexOf("http://"));
 
-        RequestToken rt = new RequestToken("key","secret");
+        RequestToken rt = new RequestToken("key", "secret");
 
         // TFJ-328 RequestToken.getAuthenticationURL()/getAuthorizationURL() should return URLs starting with https:// for security reasons
         assertTrue(0 == rt.getAuthenticationURL().indexOf("http://"));
@@ -393,10 +370,17 @@ public class ConfigurationTest  extends TestCase {
 
         // disable SSL
         writeFile("./twitter4j.properties", "twitter4j.restBaseURL=http://somewhere.com/"
-        + "\n" + "twitter4j.debug=true");
+                + "\n" + "twitter4j.debug=true"
+                + "\n" + "media.providerParameters=debug=true&foo=bar");
         conf = new ConfigurationBuilder().build();
         assertEquals("http://somewhere.com/", conf.getRestBaseURL());
         assertTrue(conf.isDebugEnabled());
+        Properties mediaProps = conf.getMediaProviderParameters();
+        assertNotNull(mediaProps);
+        assertNull(mediaProps.getProperty("hoge"));
+        assertEquals("true", mediaProps.getProperty("debug"));
+        assertEquals("bar", mediaProps.getProperty("foo"));
+
         deleteFile("./twitter4j.properties");
     }
 

@@ -1,42 +1,31 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
-
-import static twitter4j.internal.util.ParseUtil.getDate;
-import static twitter4j.internal.util.ParseUtil.getInt;
-import static twitter4j.internal.util.ParseUtil.getLong;
-import static twitter4j.internal.util.ParseUtil.getRawString;
-import static twitter4j.internal.util.ParseUtil.getUnescapedString;
-
-import java.util.Date;
 
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
+
+import java.util.Date;
+
+import static twitter4j.internal.util.ParseUtil.getDate;
+import static twitter4j.internal.util.ParseUtil.getLong;
+import static twitter4j.internal.util.ParseUtil.getRawString;
+import static twitter4j.internal.util.ParseUtil.getUnescapedString;
 
 /**
  * A data class representing a Tweet in the search response
@@ -44,29 +33,30 @@ import twitter4j.internal.org.json.JSONObject;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 /*package*/ final class TweetJSONImpl implements Tweet, java.io.Serializable {
+    private static final long serialVersionUID = 3019285230338056113L;
     private String text;
-    private int toUserId = -1;
+    private long toUserId = -1;
     private String toUser = null;
     private String fromUser;
     private long id;
-    private int fromUserId;
+    private long fromUserId;
     private String isoLanguageCode = null;
     private String source;
     private String profileImageUrl;
     private Date createdAt;
     private String location;
+    private Place place;
 
     private GeoLocation geoLocation = null;
     private Annotations annotations = null;
-    private static final long serialVersionUID = 4299736733993211587L;
 
     /*package*/ TweetJSONImpl(JSONObject tweet) throws TwitterException {
         text = getUnescapedString("text", tweet);
-        toUserId = getInt("to_user_id", tweet);
+        toUserId = getLong("to_user_id", tweet);
         toUser = getRawString("to_user", tweet);
         fromUser = getRawString("from_user", tweet);
         id = getLong("id", tweet);
-        fromUserId = getInt("from_user_id", tweet);
+        fromUserId = getLong("from_user_id", tweet);
         isoLanguageCode = getRawString("iso_language_code", tweet);
         source = getUnescapedString("source", tweet);
         profileImageUrl = getUnescapedString("profile_image_url", tweet);
@@ -79,6 +69,15 @@ import twitter4j.internal.org.json.JSONObject;
                 annotations = new Annotations(annotationsArray);
             } catch (JSONException ignore) {
             }
+        }
+        if (!tweet.isNull("place")) {
+            try {
+                place = new PlaceJSONImpl(tweet.getJSONObject("place"));
+            } catch (JSONException jsone) {
+                throw new TwitterException(jsone);
+            }
+        } else {
+            place = null;
         }
     }
 
@@ -102,7 +101,7 @@ import twitter4j.internal.org.json.JSONObject;
     /**
      * {@inheritDoc}
      */
-    public int getToUserId() {
+    public long getToUserId() {
         return toUserId;
     }
 
@@ -130,7 +129,7 @@ import twitter4j.internal.org.json.JSONObject;
     /**
      * {@inheritDoc}
      */
-    public int getFromUserId() {
+    public long getFromUserId() {
         return fromUserId;
     }
 
@@ -175,12 +174,19 @@ import twitter4j.internal.org.json.JSONObject;
     public String getLocation() {
         return location;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
+    public Place getPlace() {
+        return place;
+    }
+
     /**
      * {@inheritDoc}
      */
     public Annotations getAnnotations() {
-    	return annotations;
+        return annotations;
     }
 
     @Override
@@ -197,16 +203,18 @@ import twitter4j.internal.org.json.JSONObject;
 
     @Override
     public int hashCode() {
-        int result = text.hashCode();
-        result = 31 * result + toUserId;
+        int result = text != null ? text.hashCode() : 0;
+        result = 31 * result + (int) (toUserId ^ (toUserId >>> 32));
         result = 31 * result + (toUser != null ? toUser.hashCode() : 0);
-        result = 31 * result + fromUser.hashCode();
+        result = 31 * result + (fromUser != null ? fromUser.hashCode() : 0);
         result = 31 * result + (int) (id ^ (id >>> 32));
-        result = 31 * result + fromUserId;
+        result = 31 * result + (int) (fromUserId ^ (fromUserId >>> 32));
         result = 31 * result + (isoLanguageCode != null ? isoLanguageCode.hashCode() : 0);
-        result = 31 * result + source.hashCode();
-        result = 31 * result + profileImageUrl.hashCode();
-        result = 31 * result + createdAt.hashCode();
+        result = 31 * result + (source != null ? source.hashCode() : 0);
+        result = 31 * result + (profileImageUrl != null ? profileImageUrl.hashCode() : 0);
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (place != null ? place.hashCode() : 0);
         result = 31 * result + (geoLocation != null ? geoLocation.hashCode() : 0);
         result = 31 * result + (annotations != null ? annotations.hashCode() : 0);
         return result;
@@ -225,6 +233,8 @@ import twitter4j.internal.org.json.JSONObject;
                 ", source='" + source + '\'' +
                 ", profileImageUrl='" + profileImageUrl + '\'' +
                 ", createdAt=" + createdAt +
+                ", location='" + location + '\'' +
+                ", place=" + place +
                 ", geoLocation=" + geoLocation +
                 ", annotations=" + annotations +
                 '}';

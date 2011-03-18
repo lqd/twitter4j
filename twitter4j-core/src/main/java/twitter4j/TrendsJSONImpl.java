@@ -1,40 +1,36 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
 
-import static twitter4j.internal.util.ParseUtil.getDate;
-
-import java.util.*;
-
+import twitter4j.conf.Configuration;
 import twitter4j.internal.http.HttpResponse;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import static twitter4j.internal.util.ParseUtil.getDate;
 
 /**
  * A data class representing Trends.
@@ -53,32 +49,34 @@ import twitter4j.internal.org.json.JSONObject;
         return this.trendAt.compareTo(that.getTrendAt());
     }
 
-    TrendsJSONImpl(HttpResponse res) throws TwitterException {
+    TrendsJSONImpl(HttpResponse res, Configuration conf) throws TwitterException {
         String jsonStr = res.asString();
-        init(res.asString());
-        DataObjectFactoryUtil.clearThreadLocalMap();
-        DataObjectFactoryUtil.registerJSONObject(this, jsonStr);
+        init(res.asString(), conf.isJSONStoreEnabled());
+        if(conf.isJSONStoreEnabled()){
+            DataObjectFactoryUtil.clearThreadLocalMap();
+            DataObjectFactoryUtil.registerJSONObject(this, jsonStr);
+        }
     }
 
     TrendsJSONImpl(String jsonStr) throws TwitterException {
-        init(jsonStr);
+        init(jsonStr, false);
     }
 
-    void init(String jsonStr) throws TwitterException {
+    void init(String jsonStr, boolean storeJSON) throws TwitterException {
         try {
             JSONObject json;
             if (jsonStr.startsWith("[")) {
                 JSONArray array = new JSONArray(jsonStr);
                 if (array.length() > 0) {
                     json = array.getJSONObject(0);
-                } else{
+                } else {
                     throw new TwitterException("No trends found on the specified woeid");
                 }
             } else {
                 json = new JSONObject(jsonStr);
             }
             this.asOf = parseTrendsDate(json.getString("as_of"));
-            this.location = extractLocation(json);
+            this.location = extractLocation(json, storeJSON);
             JSONArray array = json.getJSONArray("trends");
             this.trendAt = asOf;
             this.trends = jsonArrayToTrendArray(array);
@@ -88,22 +86,22 @@ import twitter4j.internal.org.json.JSONObject;
     }
 
 
-    /*package*/ TrendsJSONImpl(Date asOf, Location location, Date trendAt, Trend[] trends)
-            throws TwitterException {
+    /*package*/ TrendsJSONImpl(Date asOf, Location location, Date trendAt, Trend[] trends) {
         this.asOf = asOf;
         this.location = location;
         this.trendAt = trendAt;
         this.trends = trends;
     }
 
-    /*package*/ static List<Trends> createTrendsList(HttpResponse res) throws
+    /*package*/
+    static List<Trends> createTrendsList(HttpResponse res, boolean storeJSON) throws
             TwitterException {
         JSONObject json = res.asJSONObject();
         List<Trends> trends;
         try {
             Date asOf = parseTrendsDate(json.getString("as_of"));
             JSONObject trendsJson = json.getJSONObject("trends");
-            Location location = extractLocation(json);
+            Location location = extractLocation(json, storeJSON);
             trends = new ArrayList<Trends>(trendsJson.length());
             Iterator<?> ite = trendsJson.keys();
             while (ite.hasNext()) {
@@ -130,20 +128,21 @@ import twitter4j.internal.org.json.JSONObject;
             throw new TwitterException(jsone.getMessage() + ":" + res.asString(), jsone);
         }
     }
-    private static Location extractLocation(JSONObject json) throws TwitterException{
-        if(json.isNull("locations")){
+
+    private static Location extractLocation(JSONObject json, boolean storeJSON) throws TwitterException {
+        if (json.isNull("locations")) {
             return null;
         }
-        ResponseList<Location> locations = null;
+        ResponseList<Location> locations;
         try {
-            locations = LocationJSONImpl.createLocationList(json.getJSONArray("locations"));
+            locations = LocationJSONImpl.createLocationList(json.getJSONArray("locations"), storeJSON);
         } catch (JSONException e) {
             throw new AssertionError("locations can't be null");
         }
         Location location;
-        if(0 != locations.size()){
+        if (0 != locations.size()) {
             location = locations.get(0);
-        }else{
+        } else {
             location = null;
         }
         return location;
@@ -152,7 +151,7 @@ import twitter4j.internal.org.json.JSONObject;
 
     private static Date parseTrendsDate(String asOfStr) throws TwitterException {
         Date parsed;
-        switch(asOfStr.length()){
+        switch (asOfStr.length()) {
             case 10:
                 parsed = new Date(Long.parseLong(asOfStr) * 1000);
                 break;

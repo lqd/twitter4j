@@ -1,44 +1,35 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
+
+import twitter4j.internal.http.HttpParameter;
+import twitter4j.internal.util.T4JInternalStringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import twitter4j.internal.http.HttpParameter;
-import twitter4j.internal.util.StringUtil;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.1.2
  */
 public final class FilterQuery implements java.io.Serializable {
+    private static final long serialVersionUID = 430966623248982833L;
     private int count;
-    private int[] follow;
+    private long[] follow;
     private String[] track;
     private double[][] locations;
     private boolean includeEntities;
@@ -46,38 +37,44 @@ public final class FilterQuery implements java.io.Serializable {
     /**
      * Creates a new FilterQuery
      */
-    public FilterQuery(){
+    public FilterQuery() {
         this.count = 0;
         this.follow = null;
         this.track = null;
         this.locations = null;
     }
+
     /**
      * Creates a new FilterQuery
+     *
      * @param follow Specifies the users, by ID, to receive public tweets from.
      */
-    public FilterQuery(int[] follow){
+    public FilterQuery(long[] follow) {
         this();
         this.count = 0;
         this.follow = follow;
     }
+
     /**
      * Creates a new FilterQuery
+     *
      * @param count  Indicates the number of previous statuses to stream before transitioning to the live stream.
      * @param follow Specifies the users, by ID, to receive public tweets from.
      */
-    public FilterQuery(int count, int[] follow){
+    public FilterQuery(int count, long[] follow) {
         this();
         this.count = count;
         this.follow = follow;
     }
+
     /**
      * Creates a new FilterQuery
+     *
      * @param count  Indicates the number of previous statuses to stream before transitioning to the live stream.
      * @param follow Specifies the users, by ID, to receive public tweets from.
      * @param track  Specifies keywords to track.
      */
-    public FilterQuery(int count, int[] follow, String[] track){
+    public FilterQuery(int count, long[] follow, String[] track) {
         this();
         this.count = count;
         this.follow = follow;
@@ -86,12 +83,13 @@ public final class FilterQuery implements java.io.Serializable {
 
     /**
      * Creates a new FilterQuery
-     * @param count  Indicates the number of previous statuses to stream before transitioning to the live stream.
-     * @param follow Specifies the users, by ID, to receive public tweets from.
-     * @param track  Specifies keywords to track.
+     *
+     * @param count     Indicates the number of previous statuses to stream before transitioning to the live stream.
+     * @param follow    Specifies the users, by ID, to receive public tweets from.
+     * @param track     Specifies keywords to track.
      * @param locations Specifies the locations to track. 2D array
      */
-    public FilterQuery(int count, int[] follow, String[] track, double[][] locations){
+    public FilterQuery(int count, long[] follow, String[] track, double[][] locations) {
         this.count = count;
         this.follow = follow;
         this.track = track;
@@ -100,43 +98,51 @@ public final class FilterQuery implements java.io.Serializable {
 
     /**
      * Sets count
-     * @param count  Indicates the number of previous statuses to stream before transitioning to the live stream.
+     *
+     * @param count Indicates the number of previous statuses to stream before transitioning to the live stream.
      * @return this instance
      */
-    public FilterQuery count(int count){
+    public FilterQuery count(int count) {
         this.count = count;
         return this;
     }
+
     /**
      * Sets follow
+     *
      * @param follow Specifies the users, by ID, to receive public tweets from.
      * @return this instance
      */
-    public FilterQuery follow(int[] follow){
+    public FilterQuery follow(long[] follow) {
         this.follow = follow;
         return this;
     }
+
     /**
      * Sets track
-     * @param track  Specifies keywords to track.
+     *
+     * @param track Specifies keywords to track.
      * @return this instance
      */
-    public FilterQuery track(String[] track){
+    public FilterQuery track(String[] track) {
         this.track = track;
         return this;
     }
+
     /**
      * Sets locations
+     *
      * @param locations Specifies the locations to track. 2D array
      * @return this instance
      */
-    public FilterQuery locations(double[][] locations){
+    public FilterQuery locations(double[][] locations) {
         this.locations = locations;
         return this;
     }
 
     /**
      * Set whether to include extracted entities in the stream.
+     *
      * @param include True if entities should be included, else false.
      * @return this instance
      * @since Twitter4J 2.1.4
@@ -146,17 +152,17 @@ public final class FilterQuery implements java.io.Serializable {
         return this;
     }
 
-    /*package*/ HttpParameter[] asHttpParameterArray(){
+    /*package*/ HttpParameter[] asHttpParameterArray() {
         ArrayList<HttpParameter> params = new ArrayList<HttpParameter>();
 
         params.add(new HttpParameter("count", count));
         if (null != follow && follow.length > 0) {
             params.add(new HttpParameter("follow"
-                    , StringUtil.join(follow)));
+                    , T4JInternalStringUtil.join(follow)));
         }
         if (null != track && track.length > 0) {
             params.add(new HttpParameter("track"
-                    , StringUtil.join(track)));
+                    , T4JInternalStringUtil.join(track)));
         }
         if (null != locations && locations.length > 0) {
             params.add(new HttpParameter("locations"
@@ -172,13 +178,13 @@ public final class FilterQuery implements java.io.Serializable {
 
     private String toLocationsString(final double[][] keywords) {
         final StringBuffer buf = new StringBuffer(20 * keywords.length * 2);
-        for (int c = 0; c < keywords.length; c++) {
+        for (double[] keyword : keywords) {
             if (0 != buf.length()) {
                 buf.append(",");
             }
-            buf.append(keywords[c][0]);
+            buf.append(keyword[0]);
             buf.append(",");
-            buf.append(keywords[c][1]);
+            buf.append(keyword[1]);
         }
         return buf.toString();
     }
@@ -209,9 +215,10 @@ public final class FilterQuery implements java.io.Serializable {
     public String toString() {
         return "FilterQuery{" +
                 "count=" + count +
-                ", follow=" + follow +
+                ", follow=" + Arrays.toString(follow) +
                 ", track=" + (track == null ? null : Arrays.asList(track)) +
                 ", locations=" + (locations == null ? null : Arrays.asList(locations)) +
+                ", includeEntities=" + includeEntities +
                 '}';
     }
 }

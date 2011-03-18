@@ -1,37 +1,31 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
 
+import junit.framework.Assert;
+import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.json.DataObjectFactory;
 
-import static twitter4j.DAOTest.assertDeserializedFormIsEqual;
-import static twitter4j.DAOTest.assertDeserializedFormIsNotEqual;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -55,29 +49,27 @@ public class TwitterTest extends TwitterTestBase {
 
     public void testGetPublicTimeline() throws Exception {
         List<Status> statuses;
+        twitter1 = new TwitterFactory(new ConfigurationBuilder().setOAuthConsumerKey(desktopConsumerKey)
+        .setOAuthConsumerSecret(desktopConsumerSecret).setOAuthAccessToken(id1.accessToken).setOAuthConsumerSecret(id1.accessTokenSecret)
+        .setJSONStoreEnabled(false).build()).getInstance();
         statuses = twitter1.getPublicTimeline();
         assertTrue("size", 0 < statuses.size());
-        assertNotNull(DataObjectFactory.getRawJSON(statuses));
-        assertEquals(statuses.get(0), DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(statuses.get(0))));
+        // should be null because json store is disabled programatically
+        assertNull(DataObjectFactory.getRawJSON(statuses));
     }
 
     public void testGetHomeTimeline() throws Exception {
         List<Status> statuses = twitter1.getHomeTimeline();
         assertTrue(0 < statuses.size());
+        assertTrue(twitter1.getConfiguration().isJSONStoreEnabled());
         assertNotNull(DataObjectFactory.getRawJSON(statuses));
         assertEquals(statuses.get(0), DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(statuses.get(0))));
     }
 
     public void testSerializability() throws Exception {
-        Twitter twitter = new TwitterFactory().getInstance("foo", "bar");
-        Twitter deserialized = (Twitter) assertDeserializedFormIsEqual(twitter);
-
-        assertEquals(deserialized.getScreenName(), twitter.getScreenName());
-        assertEquals(deserialized.auth, twitter.auth);
-
-        twitter = new TwitterFactory().getInstance();
-        deserialized = (Twitter) assertDeserializedFormIsEqual(twitter);
-        assertEquals(deserialized.auth, twitter.auth);
+        TwitterImpl deserialized = (TwitterImpl) assertDeserializedFormIsEqual(twitter1);
+        assertEquals(deserialized.getScreenName(), twitter1.getScreenName());
+        assertEquals(deserialized.auth, ((TwitterImpl) twitter1).auth);
     }
 
     public void testGetScreenName() throws Exception {
@@ -128,14 +120,14 @@ public class TwitterTest extends TwitterTestBase {
 
         assertTrue(1 < user.getFollowersCount());
         if (null != user.getStatus()) {
-            assertNotNull(user.getStatusCreatedAt());
-            assertNotNull(user.getStatusText());
-            assertNotNull(user.getStatusSource());
-            assertFalse(user.isStatusFavorited());
-            assertEquals(-1, user.getStatusInReplyToStatusId());
-            assertEquals(-1, user.getStatusInReplyToUserId());
-            assertFalse(user.isStatusFavorited());
-            assertNull(user.getStatusInReplyToScreenName());
+            assertNotNull(user.getStatus().getCreatedAt());
+            assertNotNull(user.getStatus().getText());
+            assertNotNull(user.getStatus().getSource());
+            assertFalse(user.getStatus().isFavorited());
+            assertEquals(-1, user.getStatus().getInReplyToStatusId());
+            assertEquals(-1, user.getStatus().getInReplyToUserId());
+            assertFalse(user.getStatus().isFavorited());
+            assertNull(user.getStatus().getInReplyToScreenName());
         }
 
         assertTrue(1 <= user.getListedCount());
@@ -167,7 +159,7 @@ public class TwitterTest extends TwitterTestBase {
         assertContains(users, id1);
         assertContains(users, id2);
 
-        users = twitter1.lookupUsers(new int[]{id1.id, id2.id});
+        users = twitter1.lookupUsers(new long[]{id1.id, id2.id});
         assertEquals(2, users.size());
         assertContains(users, id1);
         assertContains(users, id2);
@@ -245,6 +237,7 @@ public class TwitterTest extends TwitterTestBase {
         assertEquals(userList, DataObjectFactory.createUserList(DataObjectFactory.getRawJSON(userList)));
         assertNotNull(userList);
         assertEquals("testpoint1", userList.getName());
+        assertEquals("@twit4j/testpoint1", userList.getFullName());
         assertEquals("description1", userList.getDescription());
 
         userList = twitter1.updateUserList(userList.getId(), "testpoint2", true, "description2");
@@ -270,6 +263,10 @@ public class TwitterTest extends TwitterTestBase {
         if (statuses.size() > 0) {
             assertEquals(statuses.get(0), DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(statuses.get(0))));
         }
+        statuses = twitter1.getUserListStatuses(id1.id, userList.getId(), new Paging());
+        if (statuses.size() > 0) {
+            assertEquals(statuses.get(0), DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(statuses.get(0))));
+        }
         assertNotNull(DataObjectFactory.getRawJSON(statuses));
         assertNull(DataObjectFactory.getRawJSON(userList));
         assertNotNull(statuses);
@@ -282,7 +279,7 @@ public class TwitterTest extends TwitterTestBase {
         /*List Member Methods*/
         User user = null;
         try {
-            user = twitter1.checkUserListMembership(id1.screenName, id2.id, userList.getId());
+            user = twitter1.checkUserListMembership(id1.screenName, userList.getId(), id2.id);
             fail("id2 shouldn't be a member of the userList yet. expecting a TwitterException");
         } catch (TwitterException te) {
             assertEquals(404, te.getStatusCode());
@@ -290,10 +287,10 @@ public class TwitterTest extends TwitterTestBase {
         userList = twitter1.addUserListMember(userList.getId(), id2.id);
         assertEquals(userList, DataObjectFactory.createUserList(DataObjectFactory.getRawJSON(userList)));
         assertNotNull(DataObjectFactory.getRawJSON(userList));
-        userList = twitter1.addUserListMembers(userList.getId(), new int[]{id3.id, id2.id});
+        userList = twitter1.addUserListMembers(userList.getId(), new long[]{id3.id, id2.id});
         assertEquals(userList, DataObjectFactory.createUserList(DataObjectFactory.getRawJSON(userList)));
         assertNotNull(DataObjectFactory.getRawJSON(userList));
-        userList = twitter1.addUserListMembers(userList.getId(), new String[]{"akr", "yusukey" });
+        userList = twitter1.addUserListMembers(userList.getId(), new String[]{"akr", "yusukey"});
         assertEquals(userList, DataObjectFactory.createUserList(DataObjectFactory.getRawJSON(userList)));
         assertNotNull(DataObjectFactory.getRawJSON(userList));
         assertNotNull(userList);
@@ -306,6 +303,11 @@ public class TwitterTest extends TwitterTestBase {
         // http://code.google.com/p/twitter-api/issues/detail?id=1301
 //        assertEquals(userList.getMemberCount(), users.size());
         assertTrue(0 < users.size());// workaround issue 1301
+
+        users = twitter1.getUserListMembers(id1.id, userList.getId(), -1);
+        assertEquals(users.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(users.get(0))));
+        assertNotNull(DataObjectFactory.getRawJSON(users));
+        assertTrue(0 < users.size());
 
         userList = twitter1.deleteUserListMember(userList.getId(), id2.id);
         assertNotNull(DataObjectFactory.getRawJSON(userList));
@@ -380,7 +382,7 @@ public class TwitterTest extends TwitterTestBase {
 //        assertEquals(1, userLists.size()); workarounding issue 1300
 
         try {
-            user = twitter1.checkUserListSubscription(id1.screenName, id2.id, userList.getId());
+            user = twitter1.checkUserListSubscription(id1.screenName, userList.getId(), id2.id);
             fail("id2 shouldn't be a subscriber the userList. expecting a TwitterException");
         } catch (TwitterException ignore) {
             assertEquals(404, ignore.getStatusCode());
@@ -471,13 +473,13 @@ public class TwitterTest extends TwitterTestBase {
     }
 
     public void testStatusMethods() throws Exception {
-        String date = new java.util.Date().toString() + "test http://t.co/chEeJss @twit4j2 #twitter4jtest";
+        String date = new java.util.Date().toString() + "test http://t.co/VEDROet @twit4j2 #twitter4jtest";
         Status status = twitter1.updateStatus(date);
         assertNotNull(DataObjectFactory.getRawJSON(status));
         assertEquals(status, DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(status)));
 
         assertEquals(date, status.getText());
-        Status status2 = twitter2.updateStatus("@" + id1.screenName + " " + date, status.getId());
+        Status status2 = twitter2.updateStatus(new StatusUpdate("@" + id1.screenName + " " + date).inReplyToStatusId(status.getId()));
         assertNotNull(DataObjectFactory.getRawJSON(status2));
         assertEquals(status2, DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(status2)));
         assertEquals("@" + id1.screenName + " " + date, status2.getText());
@@ -557,7 +559,7 @@ public class TwitterTest extends TwitterTestBase {
         final double LATITUDE = 12.3456;
         final double LONGITUDE = -34.5678;
 
-        Status withgeo = twitter1.updateStatus(new java.util.Date().toString() + ": updating geo location", new GeoLocation(LATITUDE, LONGITUDE));
+        Status withgeo = twitter1.updateStatus(new StatusUpdate(new java.util.Date().toString() + ": updating geo location").location(new GeoLocation(LATITUDE, LONGITUDE)));
         assertNotNull(DataObjectFactory.getRawJSON(withgeo));
         assertEquals(withgeo, DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(withgeo)));
         assertTrue(withgeo.getUser().isGeoEnabled());
@@ -586,25 +588,19 @@ public class TwitterTest extends TwitterTestBase {
 //    }
 
     public void testGetFriendsStatuses() throws Exception {
-        PagableResponseList<User> users = twitter1.getFriendsStatuses();
+        PagableResponseList<User> users = twitter1.getFriendsStatuses(-1);
         assertNotNull(DataObjectFactory.getRawJSON(users));
         assertEquals(users.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(users.get(0))));
         assertNotNull("friendsStatuses", users);
 
-        users = twitter1.getFriendsStatuses(numberId);
-        assertNotNull(DataObjectFactory.getRawJSON(users));
-        assertEquals(users.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(users.get(0))));
-        assertNotNull("friendsStatuses", users);
-        assertEquals(id1.screenName, users.get(0).getScreenName());
-
-        users = twitter1.getFriendsStatuses(numberIdId);
+        users = twitter1.getFriendsStatuses(numberId, -1);
         assertNotNull(DataObjectFactory.getRawJSON(users));
         assertEquals(users.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(users.get(0))));
         assertNotNull("friendsStatuses", users);
         assertEquals(id1.screenName, users.get(0).getScreenName());
 
         try {
-            users = unauthenticated.getFriendsStatuses("yusukey");
+            users = unauthenticated.getFriendsStatuses("yusukey", -1);
             assertNotNull(DataObjectFactory.getRawJSON(users));
             assertNotNull("friendsStatuses", users);
             assertEquals(users.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(users.get(0))));
@@ -657,19 +653,19 @@ public class TwitterTest extends TwitterTestBase {
         assertEquals(id3.screenName, friendshipList.get(2).getScreenName());
         assertTrue(friendshipList.get(2).isFollowing());
         assertTrue(friendshipList.get(2).isFollowedBy());
-        friendshipList = twitter1.lookupFriendships(new int[]{id2.id, id3.id});
+        friendshipList = twitter1.lookupFriendships(new long[]{id2.id, id3.id});
         assertEquals(2, friendshipList.size());
 
-        Relationship relationship = twitter1.updateFriendship(id3.screenName,true,true);
+        Relationship relationship = twitter1.updateFriendship(id3.screenName, true, true);
         assertEquals(id3.screenName, relationship.getTargetUserScreenName());
 
-        relationship = twitter1.updateFriendship(id3.id,true,true);
+        relationship = twitter1.updateFriendship(id3.id, true, true);
         assertEquals(id3.screenName, relationship.getTargetUserScreenName());
     }
 
     private void assertIDExsits(String assertion, IDs ids, int idToFind) {
         boolean found = false;
-        for (int id : ids.getIDs()) {
+        for (long id : ids.getIDs()) {
             if (id == idToFind) {
                 found = true;
                 break;
@@ -693,7 +689,7 @@ public class TwitterTest extends TwitterTestBase {
 
     public void testSocialGraphMethods() throws Exception {
         IDs ids;
-        ids = twitter1.getFriendsIDs();
+        ids = twitter1.getFriendsIDs(-1);
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         int yusukey = 4933401;
         assertIDExsits("twit4j is following yusukey", ids, yusukey);
@@ -702,11 +698,11 @@ public class TwitterTest extends TwitterTestBase {
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         assertEquals(ids, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(ids)));
         assertEquals("ryunosukey is not following anyone", 0, ids.getIDs().length);
-        ids = twitter1.getFriendsIDs("yusukey");
+        ids = twitter1.getFriendsIDs("yusukey", -1);
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         assertIDExsits("yusukey is following ryunosukey", ids, ryunosukey);
         IDs obamaFollowers;
-        obamaFollowers = twitter1.getFollowersIDs("barackobama");
+        obamaFollowers = twitter1.getFollowersIDs("barackobama", -1);
         assertNotNull(DataObjectFactory.getRawJSON(obamaFollowers));
         assertEquals(obamaFollowers, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(obamaFollowers)));
         assertTrue(obamaFollowers.hasNext());
@@ -717,7 +713,7 @@ public class TwitterTest extends TwitterTestBase {
         assertTrue(obamaFollowers.hasNext());
         assertTrue(obamaFollowers.hasPrevious());
 
-        obamaFollowers = twitter1.getFollowersIDs(813286);
+        obamaFollowers = twitter1.getFollowersIDs(813286, -1);
         assertNotNull(DataObjectFactory.getRawJSON(obamaFollowers));
         assertEquals(obamaFollowers, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(obamaFollowers)));
         assertTrue(obamaFollowers.hasNext());
@@ -729,7 +725,7 @@ public class TwitterTest extends TwitterTestBase {
         assertTrue(obamaFollowers.hasPrevious());
 
         IDs obamaFriends;
-        obamaFriends = twitter1.getFriendsIDs("barackobama");
+        obamaFriends = twitter1.getFriendsIDs("barackobama", -1);
         assertNull(DataObjectFactory.getRawJSON(obamaFollowers));
         assertNotNull(DataObjectFactory.getRawJSON(obamaFriends));
         assertEquals(obamaFriends, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(obamaFriends)));
@@ -742,7 +738,7 @@ public class TwitterTest extends TwitterTestBase {
         assertTrue(obamaFriends.hasNext());
         assertTrue(obamaFriends.hasPrevious());
 
-        obamaFriends = twitter1.getFriendsIDs(813286);
+        obamaFriends = twitter1.getFriendsIDs(813286, -1);
         assertNull(DataObjectFactory.getRawJSON(obamaFollowers));
         assertNotNull(DataObjectFactory.getRawJSON(obamaFriends));
         assertEquals(obamaFriends, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(obamaFriends)));
@@ -759,15 +755,15 @@ public class TwitterTest extends TwitterTestBase {
             twitter2.createFriendship(id1.screenName);
         } catch (TwitterException ignore) {
         }
-        ids = twitter1.getFollowersIDs();
+        ids = twitter1.getFollowersIDs(-1);
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         assertEquals(ids, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(ids)));
         assertIDExsits("twit4j2 is following twit4j", ids, 6377362);
-        ids = twitter1.getFollowersIDs(ryunosukey);
+        ids = twitter1.getFollowersIDs(ryunosukey, -1);
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         assertEquals(ids, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(ids)));
         assertIDExsits("yusukey is following ryunosukey", ids, yusukey);
-        ids = twitter1.getFollowersIDs("ryunosukey");
+        ids = twitter1.getFollowersIDs("ryunosukey", -1);
         assertNotNull(DataObjectFactory.getRawJSON(ids));
         assertEquals(ids, DataObjectFactory.createIDs(DataObjectFactory.getRawJSON(ids)));
         assertIDExsits("yusukey is following ryunosukey", ids, yusukey);
@@ -801,12 +797,6 @@ public class TwitterTest extends TwitterTestBase {
         assertEquals(newURL, altered.getURL().toString());
         assertEquals(newLocation, altered.getLocation());
         assertEquals(newDescription, altered.getDescription());
-
-        try {
-            new TwitterFactory().getInstance("doesnotexist--", "foobar").verifyCredentials();
-            fail("should throw TwitterException");
-        } catch (TwitterException te) {
-        }
 
         assertTrue(twitterAPIBestFriend1.existsFriendship(bestFriend1.screenName, bestFriend2.screenName));
         assertFalse(twitter1.existsFriendship(id1.screenName, "al3x"));
@@ -849,30 +839,13 @@ public class TwitterTest extends TwitterTestBase {
     }
 
     public void testAccountProfileImageUpdates() throws Exception {
-        User user = twitter1.updateProfileImage(getRandomlyChosenFile());
+        User user = twitter1.updateProfileImage(new FileInputStream(getRandomlyChosenFile()));
         assertNotNull(DataObjectFactory.getRawJSON(user));
         // tile randomly
         User user2 = twitter1.updateProfileBackgroundImage(getRandomlyChosenFile(),
                 (5 < System.currentTimeMillis() % 5));
         assertNotNull(DataObjectFactory.getRawJSON(user2));
         assertEquals(user2, DataObjectFactory.createUser(DataObjectFactory.getRawJSON(user2)));
-    }
-
-    static final String[] files = {"src/test/resources/t4j-reverse.jpeg",
-            "src/test/resources/t4j-reverse.png",
-            "src/test/resources/t4j-reverse.gif",
-            "src/test/resources/t4j.jpeg",
-            "src/test/resources/t4j.png",
-            "src/test/resources/t4j.gif",
-    };
-
-    public static File getRandomlyChosenFile() {
-        int rand = (int) (System.currentTimeMillis() % 6);
-        File file = new File(files[rand]);
-        if (!file.exists()) {
-            file = new File("twitter4j-core/" + files[rand]);
-        }
-        return file;
     }
 
     public void testFavoriteMethods() throws Exception {
@@ -892,11 +865,11 @@ public class TwitterTest extends TwitterTestBase {
     }
 
     public void testFollowers() throws Exception {
-        PagableResponseList<User> actualReturn = twitter1.getFollowersStatuses();
+        PagableResponseList<User> actualReturn = twitter1.getFollowersStatuses(-1);
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(actualReturn.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(actualReturn.get(0))));
         assertTrue(actualReturn.size() > 0);
-        actualReturn = twitter1.getFollowersStatuses();
+        actualReturn = twitter1.getFollowersStatuses(-1);
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(actualReturn.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(actualReturn.get(0))));
         assertTrue(actualReturn.size() > 0);
@@ -906,11 +879,11 @@ public class TwitterTest extends TwitterTestBase {
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(0, actualReturn.size());
 
-        actualReturn = twitter2.getFollowersStatuses();
+        actualReturn = twitter2.getFollowersStatuses(-1);
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(actualReturn.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(actualReturn.get(0))));
         assertTrue(actualReturn.size() > 0);
-        actualReturn = twitter2.getFollowersStatuses("yusukey");
+        actualReturn = twitter2.getFollowersStatuses("yusukey", -1);
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(actualReturn.get(0), DataObjectFactory.createUser(DataObjectFactory.getRawJSON(actualReturn.get(0))));
         assertTrue(actualReturn.size() > 60);
@@ -927,7 +900,7 @@ public class TwitterTest extends TwitterTestBase {
     public void testDirectMessages() throws Exception {
         String expectedReturn = new Date() + ":directmessage test";
         DirectMessage actualReturn = twitter1.sendDirectMessage("twit4jnoupdate", expectedReturn);
-        assertTrue(0<=actualReturn.getId());
+        assertTrue(0 <= actualReturn.getId());
         assertNotNull(DataObjectFactory.getRawJSON(actualReturn));
         assertEquals(actualReturn, DataObjectFactory.createDirectMessage(DataObjectFactory.getRawJSON(actualReturn)));
         assertEquals(expectedReturn, actualReturn.getText());
@@ -1094,7 +1067,7 @@ public class TwitterTest extends TwitterTestBase {
         assertTrue(10 < rateLimitStatus.getHourlyLimit());
         assertTrue(10 < rateLimitStatus.getRemainingHits());
 
-        twitter1.setRateLimitStatusListener(new RateLimitStatusListener() {
+        twitter1.addRateLimitStatusListener(new RateLimitStatusListener() {
             public void onRateLimitStatus(RateLimitStatusEvent event) {
                 System.out.println("onRateLimitStatus" + event);
                 accountLimitStatusAcquired = event.isAccountRateLimitStatus();
@@ -1110,7 +1083,7 @@ public class TwitterTest extends TwitterTestBase {
         // the listener doesn't implement serializable and deserialized form should not be equal to the original object
         assertDeserializedFormIsNotEqual(twitter1);
 
-        unauthenticated.setRateLimitStatusListener(new RateLimitStatusListener() {
+        unauthenticated.addRateLimitStatusListener(new RateLimitStatusListener() {
             public void onRateLimitStatus(RateLimitStatusEvent event) {
                 accountLimitStatusAcquired = event.isAccountRateLimitStatus();
                 ipLimitStatusAcquired = event.isIPRateLimitStatus();
@@ -1196,12 +1169,7 @@ public class TwitterTest extends TwitterTestBase {
         assertEquals(places.get(0), DataObjectFactory.createPlace(DataObjectFactory.getRawJSON(places.get(0))));
 
         assertTrue(places.size() > 0);
-        places = twitter1.getNearbyPlaces(query);
-        assertNotNull(DataObjectFactory.getRawJSON(places));
-        for (Place place : places) {
-            System.out.println(place.getName());
-        }
-        assertTrue(places.size() > 0);
+
         places = twitter1.searchPlaces(query);
         assertNotNull(DataObjectFactory.getRawJSON(places));
         assertEquals(places.get(0), DataObjectFactory.createPlace(DataObjectFactory.getRawJSON(places.get(0))));
@@ -1258,31 +1226,81 @@ public class TwitterTest extends TwitterTestBase {
     }
 
     public void testEntities() throws Exception {
-        Status status = twitter2.showStatus(20098389530120192l);
+        Status status = twitter2.showStatus(25733871525957632l);
         assertNotNull(DataObjectFactory.getRawJSON(status));
         assertEquals(status, DataObjectFactory.createStatus(DataObjectFactory.getRawJSON(status)));
 
         URLEntity[] entities = status.getURLEntities();
-        assertEquals(1, entities.length);
-        System.out.println(entities[0]);
-        assertEquals("http://t.co/chEeJss", entities[0].getURL().toString());
-        assertEquals("http://samuraism.jp/cgi-bin/is01.cgi", entities[0].getExpandedURL().toString());
-        assertEquals("samuraism.jp/cgi-bin/is01.c\u2026", entities[0].getDisplayURL());
+        assertEquals(2, entities.length);
+        assertEquals("http://t.co/ppLTMVO", entities[0].getURL().toString());
+        assertEquals("http://twitter4j.org/en/index.html#download", entities[0].getExpandedURL().toString());
+        assertEquals("twitter4j.org/en/index.html#…", entities[0].getDisplayURL());
         assertTrue(0 < entities[0].getStart());
         assertTrue(entities[0].getStart() < entities[0].getEnd());
 
         UserMentionEntity[] userMentions = status.getUserMentionEntities();
         assertEquals(1, userMentions.length);
-        assertEquals(id2.id, userMentions[0].getId());
-        assertEquals("twit4j2", userMentions[0].getScreenName());
-        assertEquals("twit4j2 name", userMentions[0].getName());
-        assertEquals(53, userMentions[0].getStart());
-        assertEquals(61, userMentions[0].getEnd());
+        assertEquals(15928023, userMentions[0].getId());
+        assertEquals("SonatypeNexus", userMentions[0].getScreenName());
+        assertEquals("Sonatype Nexus", userMentions[0].getName());
+        assertEquals(111, userMentions[0].getStart());
+        assertEquals(125, userMentions[0].getEnd());
 
         HashtagEntity[] hashtags = status.getHashtagEntities();
         assertEquals(1, hashtags.length);
-        assertEquals("twitter4jtest", hashtags[0].getText());
-        assertEquals(62, hashtags[0].getStart());
-        assertEquals(76, hashtags[0].getEnd());
+        assertEquals("twitter4j", hashtags[0].getText());
+        assertEquals(126, hashtags[0].getStart());
+        assertEquals(136, hashtags[0].getEnd());
     }
+
+    /**
+     * @param obj the object to be asserted
+     * @return the deserialized object
+     * @throws Exception in the case the object is not (de)serializable
+     */
+    public static Object assertDeserializedFormIsEqual(Object obj) throws Exception {
+        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(byteOutputStream);
+        oos.writeObject(obj);
+        byteOutputStream.close();
+        ByteArrayInputStream byteInputStream = new ByteArrayInputStream(byteOutputStream.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(byteInputStream);
+        Object that = ois.readObject();
+        byteInputStream.close();
+        ois.close();
+        Assert.assertEquals(obj, that);
+        return that;
+    }
+
+    public static Object assertDeserializedFormIsNotEqual(Object obj) throws Exception {
+        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(byteOutputStream);
+        oos.writeObject(obj);
+        byteOutputStream.close();
+        ByteArrayInputStream byteInputStream = new ByteArrayInputStream(byteOutputStream.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(byteInputStream);
+        Object that = ois.readObject();
+        byteInputStream.close();
+        ois.close();
+        Assert.assertFalse(obj.equals(that));
+        return that;
+    }
+
+    static final String[] files = {"src/test/resources/t4j-reverse.jpeg",
+            "src/test/resources/t4j-reverse.png",
+            "src/test/resources/t4j-reverse.gif",
+            "src/test/resources/t4j.jpeg",
+            "src/test/resources/t4j.png",
+            "src/test/resources/t4j.gif",
+    };
+
+    private static File getRandomlyChosenFile() {
+        int rand = (int) (System.currentTimeMillis() % 6);
+        File file = new File(files[rand]);
+        if (!file.exists()) {
+            file = new File("twitter4j-core/" + files[rand]);
+        }
+        return file;
+    }
+
 }

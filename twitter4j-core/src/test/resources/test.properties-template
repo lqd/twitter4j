@@ -49,3 +49,5 @@ includeEntities=true
 twitpic.apiKey=
 tweetPhoto.apiKey=
 
+http.prettyDebug=true
+jsonStoreEnabled=true

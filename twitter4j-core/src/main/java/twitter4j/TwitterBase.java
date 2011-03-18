@@ -1,132 +1,83 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package twitter4j;
 
+import twitter4j.auth.Authorization;
 import twitter4j.conf.Configuration;
-import twitter4j.http.Authorization;
-import twitter4j.http.BasicAuthorization;
-import twitter4j.http.NullAuthorization;
-import twitter4j.http.OAuthAuthorization;
 
 /**
- * Base class of Twitter / AsyncTwitter / TwitterStream supports Basic Authorization.
  * @author Yusuke Yamamoto - yusuke at mac.com
+ * @since Twitter4J 2.2.0
  */
-abstract class TwitterBase implements java.io.Serializable {
-    protected final Configuration conf;
-
-    protected Authorization auth;
-    private static final long serialVersionUID = -3812176145960812140L;
-
-    /*package*/ TwitterBase(Configuration conf){
-        this.conf = conf;
-        initBasicAuthorization(conf.getUser(), conf.getPassword());
-    }
-
-    /*package*/ TwitterBase(Configuration conf, String userId, String password){
-        this.conf = conf;
-        initBasicAuthorization(userId, password);
-    }
-
-    private void initBasicAuthorization(String screenName, String password){
-        if (null != screenName && null != password) {
-            auth = new BasicAuthorization(screenName, password);
-        }
-        if(null == auth){
-            auth = NullAuthorization.getInstance();
-        }
-    }
-
-    /*package*/ TwitterBase(Configuration conf, Authorization auth) {
-        this.conf = conf;
-        this.auth = auth;
-    }
+public interface TwitterBase {
 
     /**
-     * tests if the instance is authenticated by Basic
-     * @return returns true if the instance is authenticated by Basic
+     * Returns authenticating user's screen name.<br>
+     * This method may internally call verifyCredentials() on the first invocation if<br>
+     * - this instance is authenticated by Basic and email address is supplied instead of screen name, or
+     * - this instance is authenticated by OAuth.<br>
+     * Note that this method returns a transiently cached (will be lost upon serialization) screen name while it is possible to change a user's screen name.<br>
+     *
+     * @return the authenticating screen name
+     * @throws TwitterException      when verifyCredentials threw an exception.
+     * @throws IllegalStateException if no credentials are supplied. i.e.) this is an anonymous Twitter instance
+     * @since Twitter4J 2.1.1
      */
-    public final boolean isBasicAuthEnabled() {
-        return auth instanceof BasicAuthorization && auth.isEnabled();
-    }
+    String getScreenName() throws TwitterException, IllegalStateException;
 
-    protected final void ensureAuthorizationEnabled() {
-        if (!auth.isEnabled()) {
-            throw new IllegalStateException(
-                    "Authentication credentials are missing. See http://twitter4j.org/configuration.html for the detail.");
-        }
-    }
+    /**
+     * Returns authenticating user's user id.<br>
+     * This method may internally call verifyCredentials() on the first invocation if<br>
+     * - this instance is authenticated by Basic and email address is supplied instead of screen name, or
+     * - this instance is authenticated by OAuth.<br>
+     *
+     * @return the authenticating user's id
+     * @throws TwitterException      when verifyCredentials threw an exception.
+     * @throws IllegalStateException if no credentials are supplied. i.e.) this is an anonymous Twitter instance
+     * @since Twitter4J 2.1.1
+     */
+    long getId() throws TwitterException, IllegalStateException;
 
-    protected final void ensureOAuthEnabled() {
-        if (!(auth instanceof OAuthAuthorization)) {
-            throw new IllegalStateException(
-                    "OAuth required. Authentication credentials are missing. See http://twitter4j.org/configuration.html for the detail.");
-        }
-    }
+    /**
+     * Registers a RateLimitStatusListener for account associated rate limits
+     *
+     * @param listener the listener to be added
+     * @see <a href="http://dev.twitter.com/pages/rate-limiting">Rate Limiting | dev.twitter.com</a>
+     * @since Twitter4J 2.1.12
+     */
+    void addRateLimitStatusListener(RateLimitStatusListener listener);
 
     /**
      * Returns the authorization scheme for this instance.<br>
      * The returned type will be either of BasicAuthorization, OAuthAuthorization, or NullAuthorization
+     *
      * @return the authorization scheme for this instance
      */
-    public final Authorization getAuthorization(){
-        return auth;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TwitterBase)) return false;
-
-        TwitterBase that = (TwitterBase) o;
-
-        if (!auth.equals(that.auth)) return false;
-
-        return true;
-    }
+    Authorization getAuthorization();
 
     /**
      * Returns the configuration associated with this instance
+     *
      * @return configuration associated with this instance
      * @since Twitter4J 2.1.8
      */
-    public Configuration getConfiguration(){
-        return this.conf;
-    }
+    Configuration getConfiguration();
 
-    @Override
-    public int hashCode() {
-        return auth != null ? auth.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "TwitterBase{" +
-                "auth=" + auth +
-                '}';
-    }
+    /**
+     * Shuts down this instance and releases allocated resources.
+     */
+    void shutdown();
 }

@@ -60,7 +60,7 @@ public final class PrintUserStream implements UserStreamListener
 
     // used for getting user info
     private Twitter twitter;
-    private int currentUserId;
+    private long currentUserId;
 
     // useful to rapidly filter out replies from people you follow to people you don't follow
     private static boolean ALL_REPLIES_FROM_FOLLOWINGS = true;
@@ -116,26 +116,28 @@ public final class PrintUserStream implements UserStreamListener
         twitterStream.user ();
     }
 
-    private Set<Integer> friends;
+    private Set<Long> friends;
 
-    public void onFriendList (int [] friendIds)
+    @Override
+    public void onFriendList (long [] friendIds)
     {
         System.out.println ("Received friends list - Following " + friendIds.length + " people");
 
-        friends = new HashSet<Integer> (friendIds.length);
-        for (int id : friendIds)
+        friends = new HashSet<Long> (friendIds.length);
+        for (long id : friendIds)
             friends.add (id);
     }
 
+    @Override
     public void onStatus (Status status)
     {
-        int replyTo = status.getInReplyToUserId ();
+        long replyTo = status.getInReplyToUserId ();
         
         User user = status.getUser ();
         
         if (replyTo > 0)
         {
-            int from = user.getId ();
+            long from = user.getId ();
             String replyType = null;
             
             if (currentUserId != replyTo)
@@ -179,11 +181,13 @@ public final class PrintUserStream implements UserStreamListener
             System.out.println ("");
     }
 
+    @Override
     public void onDirectMessage (DirectMessage dm)
     {
         System.out.println ("DM from " + dm.getSenderScreenName () + " to " + dm.getRecipientScreenName () + ": " + dm.getText ());
     }
 
+    @Override
     public void onDeletionNotice (StatusDeletionNotice notice)
     {
         User user = friend (notice.getUserId ());
@@ -192,7 +196,7 @@ public final class PrintUserStream implements UserStreamListener
         System.out.println (user.getName () + " [" + user.getScreenName () + "] deleted the tweet " + notice.getStatusId ());
     }
 
-    private User friend (int userId)
+    private User friend (long userId)
     {
         try
         {
@@ -207,16 +211,19 @@ public final class PrintUserStream implements UserStreamListener
         return null;
     }
 
+    @Override
     public void onTrackLimitationNotice (int numberOfLimitedStatuses)
     {
         System.out.println ("track limitation: " + numberOfLimitedStatuses);
     }
 
+    @Override
     public void onException (Exception ex)
     {
         ex.printStackTrace ();
     }
 
+    @Override
     public void onFavorite (User source, User target, Status favoritedStatus)
     {
         System.out.println (source.getName () + " [" + source.getScreenName () + "] favorited "
@@ -224,6 +231,7 @@ public final class PrintUserStream implements UserStreamListener
                 + favoritedStatus.getText ());
     }
 
+    @Override
     public void onUnfavorite (User source, User target, Status unfavoritedStatus)
     {
         System.out.println (source.getName () + " [" + source.getScreenName () + "] unfavorited "
@@ -231,6 +239,7 @@ public final class PrintUserStream implements UserStreamListener
                 + unfavoritedStatus.getText ());
     }
 
+    @Override
     public void onFollow (User source, User target)
     {
         System.out.println (source.getName () + " [" + source.getScreenName () + "] started following "
@@ -246,16 +255,19 @@ public final class PrintUserStream implements UserStreamListener
             friends.remove (target);
     }
 
+    @Override
     public void onRetweet (User source, User target, Status retweetedStatus)
     {
     }
 
+    @Override
     public void onBlock (User source, User target)
     {
         System.out.println (source.getName () + " [" + source.getScreenName () + "] blocked "
                 + target.getName () + " [" + target.getScreenName () + "]");
     }
 
+    @Override
     public void onUnblock (User source, User target)
     {
         System.out.println (source.getName () + " [" + source.getScreenName () + "] unblocked "
@@ -292,20 +304,35 @@ public final class PrintUserStream implements UserStreamListener
     }
     
     @Override
-    public void onScrubGeo (int userId, long upToStatusId)
+    public void onScrubGeo (long userId, long upToStatusId)
     {
-        System.out.println("Got scrub_geo event userId:" + userId + " upToStatusId:" + upToStatusId);
+        System.out.println ("Got scrub_geo event userId:" + userId + " upToStatusId:" + upToStatusId);
     }
     
     @Override
-    public void onDeletionNotice (long directMessageId, int userId)
+    public void onDeletionNotice (long directMessageId, long userId)
     {
-        System.out.println("Got a direct message deletion notice id:" + directMessageId);
+        System.out.println ("Got a direct message deletion notice id:" + directMessageId);
     }
     
     @Override
     public void onUserProfileUpdate (User updatedUser)
     {
-        System.out.println("onUserProfileUpdated user:@" + updatedUser.getScreenName());
+        System.out.println ("onUserProfileUpdated user:@" + updatedUser.getScreenName());
+    }
+
+    @Override
+    public void onUserListMemberAddition (User addedMember, User listOwner, UserList list)
+    {
+    }
+
+    @Override
+    public void onUserListMemberDeletion (User deletedMember, User listOwner, UserList list)
+    {
+    }
+
+    @Override
+    public void onUserListUnsubscription (User subscriber, User listOwner, UserList list)
+    {
     }
 }

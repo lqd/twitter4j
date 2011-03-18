@@ -1,55 +1,47 @@
 /*
-Copyright (c) 2007-2011, Yusuke Yamamoto
-All rights reserved.
+ * Copyright 2007 Yusuke Yamamoto
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Yusuke Yamamoto nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY Yusuke Yamamoto ``AS IS'' AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Yusuke Yamamoto BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 package twitter4j;
 
-
-import static twitter4j.internal.util.ParseUtil.getBoolean;
-import static twitter4j.internal.util.ParseUtil.getDate;
-import static twitter4j.internal.util.ParseUtil.getInt;
-import static twitter4j.internal.util.ParseUtil.getRawString;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Date;
-
+import twitter4j.conf.Configuration;
 import twitter4j.internal.http.HttpResponse;
 import twitter4j.internal.json.DataObjectFactoryUtil;
 import twitter4j.internal.org.json.JSONArray;
 import twitter4j.internal.org.json.JSONException;
 import twitter4j.internal.org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Date;
+
+import static twitter4j.internal.util.ParseUtil.getBoolean;
+import static twitter4j.internal.util.ParseUtil.getDate;
+import static twitter4j.internal.util.ParseUtil.getInt;
+import static twitter4j.internal.util.ParseUtil.getLong;
+import static twitter4j.internal.util.ParseUtil.getRawString;
+
 /**
  * A data class representing Basic user information element
+ *
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @see <a href="http://apiwiki.twitter.com/REST+API+Documentation#Basicuserinformationelement">REST API Documentation - Basic user information element</a>
  */
 /*package*/ final class UserJSONImpl extends TwitterResponseImpl implements User, java.io.Serializable {
 
-    private int id;
+    private long id;
     private String name;
     private String screenName;
     private String location;
@@ -85,12 +77,16 @@ import twitter4j.internal.org.json.JSONObject;
     private boolean isFollowRequestSent;
     private static final long serialVersionUID = -6345893237975349030L;
 
-    /*package*/UserJSONImpl(HttpResponse res) throws TwitterException {
+    /*package*/UserJSONImpl(HttpResponse res, Configuration conf) throws TwitterException {
         super(res);
-        DataObjectFactoryUtil.clearThreadLocalMap();
+        if (conf.isJSONStoreEnabled()) {
+            DataObjectFactoryUtil.clearThreadLocalMap();
+        }
         JSONObject json = res.asJSONObject();
         init(json);
-        DataObjectFactoryUtil.registerJSONObject(this, json);
+        if (conf.isJSONStoreEnabled()) {
+            DataObjectFactoryUtil.registerJSONObject(this, json);
+        }
     }
 
     /*package*/UserJSONImpl(JSONObject json) throws TwitterException {
@@ -100,7 +96,7 @@ import twitter4j.internal.org.json.JSONObject;
 
     private void init(JSONObject json) throws TwitterException {
         try {
-            id = getInt("id", json);
+            id = getLong("id", json);
             name = getRawString("name", json);
             screenName = getRawString("screen_name", json);
             location = getRawString("location", json);
@@ -142,13 +138,13 @@ import twitter4j.internal.org.json.JSONObject;
     }
 
     public int compareTo(User that) {
-        return this.id - that.getId();
+        return (int) (this.id - that.getId());
     }
 
     /**
      * {@inheritDoc}
      */
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -221,69 +217,6 @@ import twitter4j.internal.org.json.JSONObject;
      */
     public int getFollowersCount() {
         return followersCount;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Date getStatusCreatedAt() {
-        return status.getCreatedAt();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public long getStatusId() {
-        return status.getId();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getStatusText() {
-        return status.getText();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getStatusSource() {
-        return status.getSource();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isStatusTruncated() {
-        return status.isTruncated();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public long getStatusInReplyToStatusId() {
-        return status.getInReplyToStatusId();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getStatusInReplyToUserId() {
-        return status.getInReplyToUserId();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isStatusFavorited() {
-        return status.isFavorited();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getStatusInReplyToScreenName() {
-        return status.getInReplyToScreenName();
     }
 
     /**
@@ -438,9 +371,12 @@ import twitter4j.internal.org.json.JSONObject;
         return isFollowRequestSent;
     }
 
-    /*package*/ static PagableResponseList<User> createPagableUserList(HttpResponse res) throws TwitterException {
+    /*package*/
+    static PagableResponseList<User> createPagableUserList(HttpResponse res, Configuration conf) throws TwitterException {
         try {
-            DataObjectFactoryUtil.clearThreadLocalMap();
+            if (conf.isJSONStoreEnabled()) {
+                DataObjectFactoryUtil.clearThreadLocalMap();
+            }
             JSONObject json = res.asJSONObject();
             JSONArray list = json.getJSONArray("users");
             int size = list.length();
@@ -449,10 +385,14 @@ import twitter4j.internal.org.json.JSONObject;
             for (int i = 0; i < size; i++) {
                 JSONObject userJson = list.getJSONObject(i);
                 User user = new UserJSONImpl(userJson);
-                DataObjectFactoryUtil.registerJSONObject(user, userJson);
+                if(conf.isJSONStoreEnabled()){
+                    DataObjectFactoryUtil.registerJSONObject(user, userJson);
+                }
                 users.add(user);
             }
-            DataObjectFactoryUtil.registerJSONObject(users, json);
+            if (conf.isJSONStoreEnabled()) {
+                DataObjectFactoryUtil.registerJSONObject(users, json);
+            }
             return users;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -460,13 +400,18 @@ import twitter4j.internal.org.json.JSONObject;
             throw te;
         }
     }
-    /*package*/ static ResponseList<User> createUserList(HttpResponse res) throws TwitterException {
-        return createUserList(res.asJSONArray(), res);
+
+    /*package*/
+    static ResponseList<User> createUserList(HttpResponse res, Configuration conf) throws TwitterException {
+        return createUserList(res.asJSONArray(), res, conf);
     }
 
-    /*package*/ static ResponseList<User> createUserList(JSONArray list, HttpResponse res) throws TwitterException {
+    /*package*/
+    static ResponseList<User> createUserList(JSONArray list, HttpResponse res, Configuration conf) throws TwitterException {
         try {
-            DataObjectFactoryUtil.clearThreadLocalMap();
+            if (conf.isJSONStoreEnabled()) {
+                DataObjectFactoryUtil.clearThreadLocalMap();
+            }
             int size = list.length();
             ResponseList<User> users =
                     new ResponseListImpl<User>(size, res);
@@ -474,9 +419,13 @@ import twitter4j.internal.org.json.JSONObject;
                 JSONObject json = list.getJSONObject(i);
                 User user = new UserJSONImpl(json);
                 users.add(user);
-                DataObjectFactoryUtil.registerJSONObject(user, json);
+                if(conf.isJSONStoreEnabled()){
+                    DataObjectFactoryUtil.registerJSONObject(user, json);
+                }
             }
-            DataObjectFactoryUtil.registerJSONObject(users, list);
+            if (conf.isJSONStoreEnabled()) {
+                DataObjectFactoryUtil.registerJSONObject(users, list);
+            }
             return users;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -487,7 +436,7 @@ import twitter4j.internal.org.json.JSONObject;
 
     @Override
     public int hashCode() {
-        return id;
+        return (int) id;
     }
 
     @Override
